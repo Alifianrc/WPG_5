@@ -15,8 +15,10 @@ public class MainMenuManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject createRoomPanel;
 
     // Game data
-    public SaveData theData { get; set; }
+    [HideInInspector] public SaveData theData { get; set; }
 
+    // Max player in 1 room
+    public static int MaxPlayerInRoom = 5;
 
     void Start()
     {
@@ -75,7 +77,7 @@ public class MainMenuManager : MonoBehaviourPunCallbacks
             // Make a new room
             RoomOptions roomOptions = new RoomOptions();
             roomOptions.IsVisible = true;
-            roomOptions.MaxPlayers = 5;
+            roomOptions.MaxPlayers = (byte)MaxPlayerInRoom;
             PhotonNetwork.CreateRoom( "", roomOptions, TypedLobby.Default);
         }
     }
@@ -84,8 +86,6 @@ public class MainMenuManager : MonoBehaviourPunCallbacks
     {
         // Load Game Scene
         SceneManager.LoadScene(1);
-
-        Debug.Log("Joined to Room " + PhotonNetwork.CurrentRoom.Name);
     }
 
     // Method for Crate Room Button
