@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Photon.Pun;
 
 
 // Class to control preparation of the games
 
-public class StartPanel : MonoBehaviourPunCallbacks
+public class StartPanel : MonoBehaviour
 {
     // UI
     [SerializeField] private Text startText;
@@ -28,36 +27,22 @@ public class StartPanel : MonoBehaviourPunCallbacks
 
         manager = FindObjectOfType<GameManager>();
 
-        if (PhotonNetwork.IsMasterClient)
-        {
-            startManualButton.SetActive(true);
-        }
-        else
-        {
-            startManualButton.SetActive(false);
-        }
+       
     }
 
     // Update is called once per frame
     private void Update()
     {
-        if (PhotonNetwork.IsMasterClient)
-        {
-            // Waiting for player or time
-            if ((Time.time - startTime >= PlayerWaitingTime && PhotonNetwork.PlayerList.Length >= 2) || PhotonNetwork.PlayerList.Length == MainMenuManager.MaxPlayerInRoom)
-            {
-                photonView.RPC("StartGame", RpcTarget.All);
-            }
-        }
+       
     }
 
     // Manually start the games
     public void StartGamesManual()
     {
-        photonView.RPC("StartGame", RpcTarget.All);
+        
     }
 
-    [PunRPC]
+
     public void StartGame()
     {
         // Start the games
