@@ -18,22 +18,27 @@ public class GameManager : MonoBehaviour
     private float rowCount = 5;
     private float rowDist;
 
+    // Player
+    [SerializeField] private GameObject playerPrefab;
+
     // Platform Spawn Point
     [SerializeField] private Transform platformSpawnPoint;
 
     // Platform
-    [SerializeField] private GameObject platformGround;
-    [SerializeField] private GameObject platformWater;
+    [SerializeField] private GameObject platformGround; // ID = 0
+    [SerializeField] private GameObject platformWater; // ID = 1
+    private float randomPlatfromValue;
 
     // Trap
-    [SerializeField] private GameObject trapLava;
-    [SerializeField] private GameObject trapBomb;
+    [SerializeField] private GameObject trapLava; // ID = 2
+    [SerializeField] private GameObject trapBomb; // ID = 3
 
     // Scaling
     private float scaleFix;
 
     // Row position
     [SerializeField] private Transform[] rowPos;
+    [HideInInspector] public float[] rowXPos { get; private set; }
 
     // Start is called before the first frame update
     private void Start()
@@ -51,14 +56,19 @@ public class GameManager : MonoBehaviour
 
         // Calculating row position
         rowDist = screenWidth / rowCount;
+        rowXPos = new float[(int)rowCount];
         for(int i = 0; i < rowPos.Length; i++)
         {
-            rowPos[i].position = new Vector3((minPosCamera.x + (rowDist * 0.5f)) + (rowDist * i), minPosCamera.y + (rowDist * 0.5f), 0);
+            rowPos[i].position = new Vector3((minPosCamera.x + (rowDist * 0.5f)) + (rowDist * i), minPosCamera.y + (rowDist * 0.5f) - (rowDist * 5), 0);
+            rowXPos[i] = rowPos[i].position.x;
         }
 
         // Calculating scale
         float width = Camera.main.orthographicSize * 2.0f * Screen.width / Screen.height;
         scaleFix = width / rowCount;
+
+        // Set Random value in %
+        randomPlatfromValue = 95;
 
         // Spawn Player
         
@@ -70,7 +80,11 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        // If the game is started
+        if (GameIsStarted)
+        {
+            SpawnPlatformGames();
+        }
 
     }
 
@@ -88,6 +102,92 @@ public class GameManager : MonoBehaviour
                 // relocate row position
                 rowPos[i].position = new Vector3(rowPos[i].position.x, rowPos[i].position.y + rowDist, rowPos[i].position.z);
             } 
+        }
+    }
+
+    // Spawning player
+    public void SpawnPlayer()
+    {
+        // Ask player data from server
+
+        // Random spawn position
+        int randomRow = Random.Range(0, (int)rowCount);
+
+        GameObject playerTemp = Instantiate(playerPrefab);
+        PlayerManager user = playerTemp.GetComponent<PlayerManager>();
+        user.rowPos = randomRow;
+
+        // Send data to all player
+    }
+    public void SpawnPlayer(string[] playerName)
+    {
+
+    }
+
+    // Platform spaner
+    private void SpawnPlatformGames()
+    {
+        // Check spawn position
+        if(platformSpawnPoint.position.y > rowPos[0].position.y)
+        {
+            // Randomize
+            int[] temp = new int[(int)rowCount];
+            for (int i = 0; i < rowCount; i++)
+            {
+                //temp[i] = new int();
+                int platRand = Random.Range(1, 101);
+                if (platRand < randomPlatfromValue)
+                {
+                    temp[i] = 0;
+                }
+                else
+                {
+                    int trapRand = Random.Range(2, 4);
+                    temp[i] = trapRand;
+                }
+            }
+
+            // Send to other client if host
+            SpawnPlatformGames(temp);
+        }
+    }
+    private void SpawnPlatformGames(int[] platform)
+    {
+        // Spawn
+        for (int i = 0; i < rowPos.Length; i++)
+        {
+            // Instantiate new platform
+            GameObject temp;
+            if (platform[i] == 0)
+            {
+                // Spawn ground
+                temp = Instantiate(platformGround, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 10), Quaternion.identity);
+            }
+            else if(platform[i] == 1)
+            {
+                // Spawn water
+                temp = Instantiate(platformWater, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 10), Quaternion.identity);
+            }
+            else if (platform[i] == 2)
+            {
+                // Spawn bomb
+                temp = Instantiate(trapBomb, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 10), Quaternion.identity);
+            }
+            else if (platform[i] == 3)
+            {
+                // Spawn lava
+                temp = Instantiate(trapLava, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 10), Quaternion.identity);
+            }
+            else
+            {
+                // For default just spawn ground
+                temp = Instantiate(platformGround, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 10), Quaternion.identity);
+            }
+
+            // Re-scale
+            temp.transform.localScale = new Vector3(scaleFix, scaleFix, scaleFix);
+            // relocate row position
+            rowPos[i].position = new Vector3(rowPos[i].position.x, rowPos[i].position.y + rowDist, rowPos[i].position.z);
         }
     }
 }

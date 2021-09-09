@@ -26,8 +26,6 @@ public class StartPanel : MonoBehaviour
         startTime = Time.time;
 
         manager = FindObjectOfType<GameManager>();
-
-       
     }
 
     // Update is called once per frame
@@ -39,7 +37,7 @@ public class StartPanel : MonoBehaviour
     // Manually start the games
     public void StartGamesManual()
     {
-        
+        StartGame();
     }
 
 
@@ -51,8 +49,11 @@ public class StartPanel : MonoBehaviour
         //waitingPlayerPanel.SetActive(false);
         Destroy(waitingPlayerPanel);
 
-        // Set Bool
-        manager.GameIsStarted = true;
+        // Multiplayer
+        // Lock room (new player can't join)
+
+        // Spawn player character
+        manager.SpawnPlayer();
 
         // Begin count down
         StartCoroutine(CountDownStart());
@@ -75,6 +76,9 @@ public class StartPanel : MonoBehaviour
 
             countDownTime--;
         }
+
+        // Set Bool
+        manager.GameIsStarted = true;
 
         Destroy(gameObject);
     }

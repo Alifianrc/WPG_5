@@ -167,6 +167,7 @@ GameObject:
   - component: {fileID: 247544701}
   - component: {fileID: 247544700}
   - component: {fileID: 247544699}
+  - component: {fileID: 247544702}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -239,6 +240,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &247544702
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 247544698}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac6456335fc186e4f9d9b248d1b2160d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &451845252
 GameObject:
   m_ObjectHideFlags: 0
@@ -590,7 +603,6 @@ GameObject:
   - component: {fileID: 801178865}
   - component: {fileID: 801178864}
   - component: {fileID: 801178866}
-  - component: {fileID: 801178867}
   m_Layer: 5
   m_Name: Start Panel
   m_TagString: Untagged
@@ -672,28 +684,6 @@ MonoBehaviour:
   startManualButton: {fileID: 668824660}
   PlayerWaitingTime: 10
   countDownTime: 4
---- !u!114 &801178867
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 801178862}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 3
-  OwnershipTransfer: 0
-  observableSearch: 2
-  ObservedComponents: []
-  sceneViewId: 1
-  InstantiationId: 0
-  isRuntimeInstantiated: 0
 --- !u!1 &817574708
 GameObject:
   m_ObjectHideFlags: 0
@@ -1024,7 +1014,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1493983292}
   - component: {fileID: 1493983291}
-  - component: {fileID: 1493983293}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -1047,6 +1036,8 @@ MonoBehaviour:
   menuPanel: {fileID: 1241583156}
   startPanel: {fileID: 801178862}
   waitingPlayerPanel: {fileID: 1885622331}
+  playerPrefab: {fileID: 3738814365550734074, guid: dd885aae7960dbd41b001d92c5ff7af3,
+    type: 3}
   platformSpawnPoint: {fileID: 1990641263}
   platformGround: {fileID: 6145292933383824805, guid: dd8f36cb157b2be4482c22d112d7737b,
     type: 3}
@@ -1076,28 +1067,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1493983293
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1493983290}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 3
-  OwnershipTransfer: 0
-  observableSearch: 2
-  ObservedComponents: []
-  sceneViewId: 2
-  InstantiationId: 0
-  isRuntimeInstantiated: 0
 --- !u!1 &1874792430
 GameObject:
   m_ObjectHideFlags: 0
@@ -1145,7 +1114,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1885622332
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1213,6 +1182,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1990641263}
+  - component: {fileID: 1990641264}
   m_Layer: 0
   m_Name: Platform Spawn Point
   m_TagString: Untagged
@@ -1234,6 +1204,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1990641264
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1990641262}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b13e4674f1f2e7489104369ad665755, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2139604567
 GameObject:
   m_ObjectHideFlags: 0
