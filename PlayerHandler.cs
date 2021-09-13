@@ -7,13 +7,9 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Wkwk_Server
 {
-    class Player
+    class PlayerHandler
     {
-        // Name
-        public string playerName;
-        // Socket
-        public TcpClient tcp;
-
+        Player player;
         // List of online player (not in lobby or room)
         private List<Player> onlineList;
         // List of player want to play / queue
@@ -23,31 +19,21 @@ namespace Wkwk_Server
         // List of disconnected player
         private List<Player> disconnectedList;
 
-        // Player position
-        // 0 = onlineList
-        // 1 = lobbyList
-        // 2 = roomList
-        // 3 = disconnectedList
-        public int listPosition;
-
-        // Stream
         NetworkStream stream;
+
         // This player room
         private Room myRoom;
 
-        public Player(TcpClient tcp, List<Player> onlineList, List<Player> lobbyList, List<Room> roomList, List<Player> disconnectedList)
+        public PlayerHandler(Player player, List<Player> onlineList, List<Player> lobbyList, List<Room> roomList, List<Player> disconnectedList)
         {
-            this.tcp = tcp;
+            this.player = player;
             this.onlineList = onlineList;
             this.lobbyList = lobbyList;
             this.roomList = roomList;
             this.disconnectedList = disconnectedList;
 
-            stream = tcp.GetStream();
-        }
+            stream = player.tcp.GetStream();
 
-        public void StartReceiving()
-        {
             Thread recieveThread = new Thread(RecievedMassage);
             recieveThread.Start();
         }
@@ -76,7 +62,7 @@ namespace Wkwk_Server
                         switch (info[1])
                         {
                             case "Check":
-                                SendMassage(playerName, "Check");
+                                SendMassage(player.playerName, "Check");
                                 break;
                             case "JoinLobby":
                                 JoinLobby();
@@ -104,6 +90,12 @@ namespace Wkwk_Server
 
                                 break;
                         }
+
+                        // Print massage
+                        if (info[1] != "Check")
+                        {
+                            Console.WriteLine(player.playerName + " : " + info[1]);
+                        }
                     }
                 }
             }
@@ -118,19 +110,26 @@ namespace Wkwk_Server
         private void SendMassage(string target, string[] massage)
         {
             // Send to this player
-            if (target == playerName)
+            if(target == player.playerName)
             {
                 // send format : FromWho|Data1|Data2|...
-                string data = "Server";
+                string data = "Server" + "|";
                 // Add data
                 for (int i = 0; i < massage.Length; i++)
                 {
-                    data += "|" + massage[i];
+                    data += massage[i] + "|";
                 }
                 BinaryFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(stream, data);
+                try
+                {
+                    formatter.Serialize(stream, data);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error sending massage : " + e.Message);
+                }
             }
-
+            
             // Send to All Player in room
 
 
@@ -138,25 +137,25 @@ namespace Wkwk_Server
 
         }
 
+        // Join Lobby method
         private void JoinLobby()
         {
-            foreach (Player a in onlineList)
+            foreach(Player a in onlineList)
             {
-                if (a.tcp == tcp)
+                if(a.tcp == player.tcp)
                 {
                     // Remove from online list
                     onlineList.Remove(a);
 
                     // Add to Lobby list
                     lobbyList.Add(a);
-                    listPosition = 1;
 
                     // Send massage to client
-                    SendMassage(playerName, "JoinedLobby");
+                    SendMassage("Server", "JoinedLobby");
 
                     // Print massage
-                    Console.WriteLine(playerName + " : Join to Lobby");
-
+                    Console.WriteLine(player.playerName + " : Move to Lobby");
+                    Console.WriteLine(lobbyList.Count);
                     return;
                 }
             }
@@ -165,85 +164,49 @@ namespace Wkwk_Server
         // Create room auto
         public void CreateRoom()
         {
-            CreateRoom(playerName + "Room", "5", "1");
+            CreateRoom(player.playerName + "Room", "5", "1");
         }
         // Create custom private room
-        public void CreateRoom(string roomName, string playerMax, string isPublic)
+        public void CreateRoom(string roomName, string playerMax, string canJoin)
         {
             // Generate room
             Room temp = new Room();
             temp.roomName = roomName;
             temp.MaxPlayer = int.Parse(playerMax);
-            temp.isPublic = StringToBool(isPublic);
-            temp.playerList = new List<Player>();
+            temp.canJoin = StringToBool(canJoin);
 
-            if(listPosition == 0)
+            // Moving player to room
+            foreach (Player a in onlineList)
             {
-                // Moving player from online to room
-                foreach (Player a in onlineList)
+                if (a.tcp == player.tcp)
                 {
-                    if (a.tcp == tcp)
-                    {
-                        // Remove from online list
-                        onlineList.Remove(a);
+                    // Remove from online list
+                    onlineList.Remove(a);
 
-                        // Add to room list
-                        temp.playerList.Add(a);
-                        listPosition = 2;
+                    // Add to Lobby list
+                    temp.playerList.Add(a);
 
-                        // Save room
-                        myRoom = temp;
+                    // Save room
+                    myRoom = temp;
 
-                        // Send massage to client
-                        SendMassage("Server", "JoinedRoom");
+                    // Send massage to client
+                    SendMassage("Server", "JoinedRoom");
 
-                        // Print massage in server
-                        Console.WriteLine(playerName + " : Joined room " + myRoom.roomName);
-
-                        return;
-                    }
-                }
-            }
-            else if(listPosition == 1)
-            {
-                // Moving player from lobby to room
-                foreach (Player a in lobbyList)
-                {
-                    if (a.tcp == tcp)
-                    {
-                        // Remove from lobby list
-                        lobbyList.Remove(a);
-
-                        // Add to room list
-                        temp.playerList.Add(a);
-                        listPosition = 2;
-
-                        // Save room
-                        myRoom = temp;
-
-                        // Send massage to client
-                        SendMassage(playerName, "JoinedRoom");
-
-                        // Print massage in server
-                        Console.WriteLine(playerName + " : Joined room " + myRoom.roomName);
-
-                        return;
-                    }
+                    return;
                 }
             }
         }
 
         // Join other players room
-        public void JoinRoom(string roomName)
+        private void JoinRoom(string roomName)
         {
-            foreach (Room a in roomList)
+            foreach(Room a in roomList)
             {
-                if (a.roomName == roomName && a.canJoin)
+                if(a.roomName == roomName && a.canJoin)
                 {
-                    onlineList.Remove(this);
-                    a.playerList.Add(this);
-                    listPosition = 2;
-                    a.CheckRoom();
+                    onlineList.Remove(player);
+                    a.playerList.Add(player);
+
                     myRoom = a;
                 }
             }
@@ -254,37 +217,32 @@ namespace Wkwk_Server
         {
             foreach (Player a in lobbyList)
             {
-                if (a.tcp == tcp)
+                if (a.tcp == player.tcp)
                 {
                     // Remove from online list
                     lobbyList.Remove(a);
 
                     // Add to Lobby list
                     onlineList.Add(a);
-                    listPosition = 0;
                 }
             }
 
             // Print massage
-            Console.WriteLine(playerName + " : Exit from Lobby");
+            Console.WriteLine(player.playerName + " : Exit from Lobby");
         }
 
         // Exit from room
         public void ExitRoom()
         {
-            foreach (Player a in myRoom.playerList)
+            foreach(Player a in myRoom.playerList)
             {
-                if (a.tcp == tcp)
+                if (a.tcp == player.tcp)
                 {
                     // Remove from player list in room
                     myRoom.playerList.Remove(a);
 
                     // Add to online list
                     onlineList.Add(a);
-                    listPosition = 0;
-
-                    myRoom.CheckRoom();
-                    myRoom = null;
                 }
             }
         }

@@ -10,8 +10,6 @@ namespace Wkwk_Server
 {
     class Server
     {
-        // List of all player connected to server
-        private List<PlayerHandler> playerHandlerList;
         // List of online player (not in lobby or room)
         private List<Player> onlineList;
         // List of player want to play / queue
@@ -36,7 +34,6 @@ namespace Wkwk_Server
             lobbyList = new List<Player>();
             roomList = new List<Room>();
             disconnectedList = new List<Player>();
-            playerHandlerList = new List<PlayerHandler>();
 
             try
             {
@@ -51,20 +48,30 @@ namespace Wkwk_Server
             }
 
             serverIsStarted = true;
-            BeginListening();
+
+            // Start accepting client
+            Thread beginListenThread = new Thread(BeginListening);
+            beginListenThread.Start();
+
+            // Matchmaking thread
+            Thread matchmakingThread = new Thread(Matchmaking);
+            matchmakingThread.Start();
         }
 
         // Accepting client, not thread, but looping :v ----------------------------------------------
         private void BeginListening()
         {
-            serverListener.BeginAcceptTcpClient(AcceptClient, serverListener);
+            while (true)
+            {
+                serverListener.BeginAcceptTcpClient(AcceptClient, serverListener);
+            }
         }
         private void AcceptClient(IAsyncResult result)
         {
             TcpListener listener = (TcpListener)result.AsyncState;
 
             // Ask for name
-            Player player = new Player(listener.EndAcceptTcpClient(result));
+            Player player = new Player(listener.EndAcceptTcpClient(result), onlineList, lobbyList, roomList, disconnectedList);
             NetworkStream tempStream = player.tcp.GetStream();
             string massage = "Server|WHORU";
 
@@ -78,16 +85,49 @@ namespace Wkwk_Server
             // Add to list
             player.playerName = info[1];
             onlineList.Add(player);
+            player.listPosition = 0;
 
-            // Handle this new Player
-            PlayerHandler temp = new PlayerHandler(player, onlineList, lobbyList, roomList, disconnectedList);
-            playerHandlerList.Add(temp);
+            // Start player
+            player.StartReceiving();
 
             // Print massage in console
             Console.WriteLine("Server : Client " + player.playerName + " is online");
+        }
 
-            // Start listening agaian
-            BeginListening();
+        // Matchmaking -------------------------------------------------------------------------------
+        public void Matchmaking()
+        {
+            while (true)
+            {
+                if(lobbyList.Count > 0)
+                {
+                    bool joinedRoom = false;
+                    for (int i = 0; i < lobbyList.Count; i++)
+                    {
+                        // If there is some room
+                        if (roomList.Count > 0)
+                        {
+                            // Check each room
+                            for (int j = 0; j < roomList.Count; j++)
+                            {
+                                // If room is public
+                                if (roomList[j].isPublic && roomList[j].canJoin)
+                                {
+                                    lobbyList[i].JoinRoom(roomList[j].roomName);
+                                    joinedRoom = true;
+                                    return;
+                                }
+                            }
+                        }
+                        // If there is room check each room
+                        else if (roomList.Count <= 0 && joinedRoom == false)
+                        {
+                            // Make a new one
+                            lobbyList[i].CreateRoom();
+                        }
+                    }
+                }
+            }
         }
     }
 }

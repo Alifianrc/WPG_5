@@ -8,14 +8,25 @@ namespace Wkwk_Server
     {
         // Name of this room
         public string roomName;
-        // Player can join or not
+        // Room is public or not
+        public bool isPublic;
+        // Can Join Room or Not
         public bool canJoin;
         // Maximum player in this room
         public int MaxPlayer;
         // List of player in this room
         public List<Player> playerList;
 
-
-
+        public void CheckRoom()
+        {
+            if(playerList.Count == MaxPlayer)
+            {
+                canJoin = false;
+            }
+            else
+            {
+                canJoin = true;
+            }
+        }
     }
 }

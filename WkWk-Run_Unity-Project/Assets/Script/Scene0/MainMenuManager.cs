@@ -15,13 +15,13 @@ public class MainMenuManager : MonoBehaviour
     // Game data
     [HideInInspector] public SaveData theData { get; set; }
 
-    // Max player in 1 room
-    public static int MaxPlayerInRoom = 5;
+    // Network manager
+    private Client network;
 
     void Start()
     {
-        // Connecting so server
-        
+        // Initialize
+        network = FindObjectOfType<Client>();
 
         // Load game data
         theData = SaveGame.LoadData();
@@ -37,23 +37,50 @@ public class MainMenuManager : MonoBehaviour
             selectNamePanel.SetActive(false);
         }
 
-
+        // Checking connection regulary
+        StartCoroutine(CheckConnection());
     }
     
     // Method for play button
     public void PlayButton()
     {
-        // Setting Player Name
-        
-
-        // Activate matchmaking panel
+        // Join Lobby
+        network.SendMassage("Server", "JoinLobby");
+    }
+    public void OnJoinedLobby()
+    {
         matchmakingPanel.SetActive(true);
+    }
+    public void OnJoinedRoom()
+    {
+        SceneManager.LoadScene(1); Debug.Log("Room");
     }
 
     // Method for Crate Room Button
     public void CreateRoomButton()
     {
-        matchmakingPanel.SetActive(true);
+        // Create room
+
+       
+    }
+
+    // Checking connection regulary
+    private IEnumerator CheckConnection()
+    {
+        while (true)
+        {
+            if (network.isConnected)
+            {
+                connectingPanel.SetActive(false);
+            }
+            else
+            {
+                connectingPanel.SetActive(true);
+            }
+            
+            // Delay
+            yield return new WaitForSeconds(2);
+        }
     }
 
     void Update()

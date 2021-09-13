@@ -11,8 +11,12 @@ public class Client : MonoBehaviour
     private TcpClient client;
     private NetworkStream networkStream;
     private int port = 1313;
-    private BinaryFormatter formatter;
 
+    public bool isConnected { get; private set; }
+
+    // Check connection timer
+    float CheckTime = 10;
+    float checkCountDown;
 
     void Start()
     {
@@ -20,13 +24,15 @@ public class Client : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         client = new TcpClient();
-        formatter = new BinaryFormatter();
+
+        checkCountDown = CheckTime;
 
         try
         {
             client.Connect(IPAddress.Loopback, port);
             networkStream = client.GetStream();
 
+            isConnected = true;
             Debug.Log("Connected to server");
         }
         catch(Exception e)
@@ -36,8 +42,11 @@ public class Client : MonoBehaviour
             // Try connecting again and again
             StartCoroutine(TryConnecting());
         }
+
+        StartCoroutine(CheckConnection());
     }
 
+    // Try connecting to server
     private IEnumerator TryConnecting()
     {
         int count = 0;
@@ -49,6 +58,7 @@ public class Client : MonoBehaviour
                 client.Connect(IPAddress.Loopback, port);
                 networkStream = client.GetStream();
 
+                isConnected = true;
                 Debug.Log("Connected to server");
             }
             catch (Exception e)
@@ -61,20 +71,45 @@ public class Client : MonoBehaviour
         }
     }
 
+    private IEnumerator CheckConnection()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(CheckTime / 2);
+
+            if (client.Connected)
+            {
+                SendMassage("Server", "Check");
+            }
+        }
+    }
+
     void Update()
     {
         if (client.Connected)
         {
             if (networkStream.DataAvailable)
             {
+                BinaryFormatter formatter = new BinaryFormatter();
                 RecieveMassage(formatter.Deserialize(networkStream) as string);
             }
+        }
+
+        // Checking connection
+        if(checkCountDown > 0)
+        {
+            checkCountDown -= Time.deltaTime;
+            isConnected = true;
+        }
+        else
+        {
+            isConnected = false;
         }
     }
 
     private void RecieveMassage(string massage)
     {
-        // format : Sender|Massage
+        // recieve format : Sender|Data1|Data2|...
         string[] data = massage.Split('|');
         if(data[0] == "Server")
         {
@@ -82,7 +117,19 @@ public class Client : MonoBehaviour
             {
                 case "WHORU":
                     // Send player name
-                    SendMassage("", "Server");
+                    SendMassage("Server", SaveGame.LoadData().UserName);
+                    break;
+                case "Check":
+                    // Connection check success
+                    checkCountDown = CheckTime;
+                    break;
+                case "JoinedLobby":
+                    // If joined in lobby
+                    FindObjectOfType<MainMenuManager>().OnJoinedLobby();
+                    break;
+                case "JoinedRoom":
+                    // If joined in room
+                    FindObjectOfType<MainMenuManager>().OnJoinedRoom();
                     break;
                 default:
                     Debug.Log("Unreconized massage : " + massage);
@@ -93,24 +140,28 @@ public class Client : MonoBehaviour
         {
 
         }
+
+        // Debugging
+        Debug.Log(massage);
     }
 
-    private void SendMassage(string massage, string target)
+    public void SendMassage(string target, string massage)
     {
         string[] data = new string[1];
         data[0] = massage;
-        SendMassage(data, target);
+        SendMassage(target, data);
     }
-    private void SendMassage(string[] massage, string target)
+    public void SendMassage(string target, string[] massage)
     {
-        // format : To Who|The data
-        string data = target + "|";
+        // send format : ToWho|Data1|Data2|...
+        string data = target;
         // Add data
         for (int i = 0; i < massage.Length; i++)
         {
-            data += massage[i] + "|";
+            data += "|" + massage[i];
         }
-         
+
+        BinaryFormatter formatter = new BinaryFormatter();
         formatter.Serialize(networkStream, data);
     }
 
