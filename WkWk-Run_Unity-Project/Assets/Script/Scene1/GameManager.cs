@@ -40,9 +40,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform[] rowPos;
     [HideInInspector] public float[] rowXPos { get; private set; }
 
+    // Network
+    private Client network;
+    [SerializeField] private GameObject networkPrefab;
+
     // Start is called before the first frame update
     private void Start()
     {
+        // Networking
+        network = FindObjectOfType<Client>();
+
         // Panels
         startPanel.SetActive(true);
         waitingPlayerPanel.SetActive(true);
@@ -71,7 +78,7 @@ public class GameManager : MonoBehaviour
         randomPlatfromValue = 95;
 
         // Spawn Player
-        
+        network.SendMassageClient("Server", "SpawnPlayer"); // Need more parameter in future
 
         // Creating start map
         StartMapSpawn();
@@ -103,25 +110,6 @@ public class GameManager : MonoBehaviour
                 rowPos[i].position = new Vector3(rowPos[i].position.x, rowPos[i].position.y + rowDist, rowPos[i].position.z);
             } 
         }
-    }
-
-    // Spawning player
-    public void SpawnPlayer()
-    {
-        // Ask player data from server
-
-        // Random spawn position
-        int randomRow = Random.Range(0, (int)rowCount);
-
-        GameObject playerTemp = Instantiate(playerPrefab);
-        PlayerManager user = playerTemp.GetComponent<PlayerManager>();
-        user.rowPos = randomRow;
-
-        // Send data to all player
-    }
-    public void SpawnPlayer(string[] playerName)
-    {
-
     }
 
     // Platform spaner

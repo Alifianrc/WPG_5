@@ -1053,6 +1053,7 @@ MonoBehaviour:
   - {fileID: 1134580964}
   - {fileID: 1259883846}
   - {fileID: 1874792431}
+  networkPrefab: {fileID: 0}
 --- !u!4 &1493983292
 Transform:
   m_ObjectHideFlags: 0

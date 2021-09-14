@@ -20,8 +20,7 @@ public class MainMenuManager : MonoBehaviour
 
     void Start()
     {
-        // Initialize
-        network = FindObjectOfType<Client>();
+        network = FindObjectOfType<Client>();        
 
         // Load game data
         theData = SaveGame.LoadData();
@@ -45,7 +44,7 @@ public class MainMenuManager : MonoBehaviour
     public void PlayButton()
     {
         // Join Lobby
-        network.SendMassage("Server", "JoinLobby");
+        network.SendMassageClient("Server", "JoinLobby");
     }
     public void OnJoinedLobby()
     {
@@ -53,7 +52,7 @@ public class MainMenuManager : MonoBehaviour
     }
     public void OnJoinedRoom()
     {
-        SceneManager.LoadScene(1); Debug.Log("Room");
+        SceneManager.LoadScene(1);
     }
 
     // Method for Crate Room Button

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Net;
@@ -52,10 +51,6 @@ namespace Wkwk_Server
             // Start accepting client
             Thread beginListenThread = new Thread(BeginListening);
             beginListenThread.Start();
-
-            // Matchmaking thread
-            Thread matchmakingThread = new Thread(Matchmaking);
-            matchmakingThread.Start();
         }
 
         // Accepting client, not thread, but looping :v ----------------------------------------------
@@ -95,37 +90,32 @@ namespace Wkwk_Server
         }
 
         // Matchmaking -------------------------------------------------------------------------------
-        public void Matchmaking()
+        public static void Matchmaking(Player player, List<Player> lobbyList, List<Room> roomList)
         {
-            while (true)
+            // Check list
+            if(lobbyList.Count > 0)
             {
-                if(lobbyList.Count > 0)
+                bool joinedRoom = false;
+                // If there is some room
+                if (roomList.Count > 0)
                 {
-                    bool joinedRoom = false;
-                    for (int i = 0; i < lobbyList.Count; i++)
+                    // Check each room
+                    for (int j = 0; j < roomList.Count; j++)
                     {
-                        // If there is some room
-                        if (roomList.Count > 0)
+                        // If room is public
+                        if (roomList[j].isPublic && roomList[j].canJoin)
                         {
-                            // Check each room
-                            for (int j = 0; j < roomList.Count; j++)
-                            {
-                                // If room is public
-                                if (roomList[j].isPublic && roomList[j].canJoin)
-                                {
-                                    lobbyList[i].JoinRoom(roomList[j].roomName);
-                                    joinedRoom = true;
-                                    return;
-                                }
-                            }
-                        }
-                        // If there is room check each room
-                        else if (roomList.Count <= 0 && joinedRoom == false)
-                        {
-                            // Make a new one
-                            lobbyList[i].CreateRoom();
+                            player.JoinRoom(roomList[j].roomName);
+                            joinedRoom = true;
+                            return;
                         }
                     }
+                }
+                // If there is room check each room
+                else if (roomList.Count <= 0 && joinedRoom == false)
+                {
+                    // Make a new one
+                    player.CreateRoom();
                 }
             }
         }

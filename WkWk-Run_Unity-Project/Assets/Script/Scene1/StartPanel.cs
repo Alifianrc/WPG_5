@@ -52,9 +52,6 @@ public class StartPanel : MonoBehaviour
         // Multiplayer
         // Lock room (new player can't join)
 
-        // Spawn player character
-        manager.SpawnPlayer();
-
         // Begin count down
         StartCoroutine(CountDownStart());
     }

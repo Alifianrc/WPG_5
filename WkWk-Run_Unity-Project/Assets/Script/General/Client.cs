@@ -11,12 +11,26 @@ public class Client : MonoBehaviour
     private TcpClient client;
     private NetworkStream networkStream;
     private int port = 1313;
+    public IPAddress ipAd = IPAddress.Parse("127.0.0.1");
+    // 182.253.90.115
+    // 127.0.0.1
 
     public bool isConnected { get; private set; }
 
     // Check connection timer
-    float CheckTime = 10;
+    float CheckTime = 2;
     float checkCountDown;
+
+    // Master of room
+    public bool isMaster { get; private set; }
+
+    // Checking connection
+    bool needCheck;
+
+    // Player
+    [SerializeField] private GameObject playerPrefab;
+    private List<PlayerManager> playerList;
+    private GameObject myPlayer;
 
     void Start()
     {
@@ -27,9 +41,11 @@ public class Client : MonoBehaviour
 
         checkCountDown = CheckTime;
 
+        playerList = new List<PlayerManager>();
+
         try
         {
-            client.Connect(IPAddress.Loopback, port);
+            client.Connect(ipAd, port);
             networkStream = client.GetStream();
 
             isConnected = true;
@@ -49,6 +65,9 @@ public class Client : MonoBehaviour
     // Try connecting to server
     private IEnumerator TryConnecting()
     {
+        // Wait 2 second and try agaian
+        yield return new WaitForSeconds(2);
+
         int count = 0;
         while (!client.Connected)
         {
@@ -65,9 +84,6 @@ public class Client : MonoBehaviour
             {
                 Debug.Log("Try connecting-" + count + " error : " + e.Message);
             }
-
-            // Wait 2 second and try agaian
-            yield return new WaitForSeconds(2);
         }
     }
 
@@ -77,9 +93,9 @@ public class Client : MonoBehaviour
         {
             yield return new WaitForSeconds(CheckTime / 2);
 
-            if (client.Connected)
+            if (client.Connected && needCheck)
             {
-                SendMassage("Server", "Check");
+                SendMassageClient("Server", "SYN");
             }
         }
     }
@@ -117,9 +133,10 @@ public class Client : MonoBehaviour
             {
                 case "WHORU":
                     // Send player name
-                    SendMassage("Server", SaveGame.LoadData().UserName);
+                    SendMassageClient("Server", SaveGame.LoadData().UserName);
+                    needCheck = true;
                     break;
-                case "Check":
+                case "SYNA":
                     // Connection check success
                     checkCountDown = CheckTime;
                     break;
@@ -127,9 +144,17 @@ public class Client : MonoBehaviour
                     // If joined in lobby
                     FindObjectOfType<MainMenuManager>().OnJoinedLobby();
                     break;
+                case "CreatedRoom":
+                    // If joined in room
+                    FindObjectOfType<MainMenuManager>().OnJoinedRoom();
+                    // If creating room, auto room owner (master)
+                    isMaster = true;
+                    break;
                 case "JoinedRoom":
                     // If joined in room
                     FindObjectOfType<MainMenuManager>().OnJoinedRoom();
+                    break;
+                
                     break;
                 default:
                     Debug.Log("Unreconized massage : " + massage);
@@ -138,20 +163,45 @@ public class Client : MonoBehaviour
         }
         else if(data[0] == "Client")
         {
+            switch (data[1])
+            {
+                case "SpawnPlayer":
+                    // Spawn object player
+                    PlayerManager player = Instantiate(playerPrefab).GetComponent<PlayerManager>();
+                    player.playerName = data[2];
+                    player.rowPos = int.Parse(data[3]);
+                    playerList.Add(player);
+                    // Safe if it's mine
+                    if(player.playerName == SaveGame.LoadData().UserName)
+                    {
+                        myPlayer = player.gameObject;
+                        // Set object to be followeb by camera
+                        FindObjectOfType<CameraFollow>().playerPos = myPlayer.gameObject.transform;
+                    }
+                    // Send our player object to other player
+                    else if(player.playerName != SaveGame.LoadData().UserName)
+                    {
+                        // Need more parameter in future
+                        int myRow = myPlayer.GetComponent<PlayerManager>().rowPos;
+                        string[] parameter = new string[] { "SpawnPlayerToOther", myRow.ToString() };
+                        SendMassageClient(player.playerName, parameter);
+                    }
 
+                    break;
+                default:
+                    Debug.Log("Unreconized massage : " + massage);
+                    break;
+            }
         }
-
-        // Debugging
-        Debug.Log(massage);
     }
 
-    public void SendMassage(string target, string massage)
+    public void SendMassageClient(string target, string massage)
     {
         string[] data = new string[1];
         data[0] = massage;
-        SendMassage(target, data);
+        SendMassageClient(target, data);
     }
-    public void SendMassage(string target, string[] massage)
+    public void SendMassageClient(string target, string[] massage)
     {
         // send format : ToWho|Data1|Data2|...
         string data = target;
