@@ -17,6 +17,11 @@ public class SelectNamePanel : MonoBehaviour
         FindObjectOfType<MainMenuManager>().theData.UserName = inputName.text;
         SaveGame.SaveProgress(FindObjectOfType<MainMenuManager>().theData);
         gameObject.SetActive(false);
+
+        // Tell server
+        Client client = FindObjectOfType<Client>();
+        string[] massage = new string[] { "ChangeName", inputName.text };
+        client.SendMassageClient("Server", massage);
     }
 
     // Check name character size

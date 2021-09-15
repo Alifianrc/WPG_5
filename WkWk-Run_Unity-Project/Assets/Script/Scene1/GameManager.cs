@@ -28,7 +28,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject platformGround; // ID = 0
     [SerializeField] private GameObject platformWater; // ID = 1
     private float randomPlatfromValue;
-
     // Trap
     [SerializeField] private GameObject trapLava; // ID = 2
     [SerializeField] private GameObject trapBomb; // ID = 3
@@ -88,7 +87,7 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         // If the game is started
-        if (GameIsStarted)
+        if (GameIsStarted && network.isMaster)
         {
             SpawnPlatformGames();
         }
@@ -118,6 +117,9 @@ public class GameManager : MonoBehaviour
         // Check spawn position
         if(platformSpawnPoint.position.y > rowPos[0].position.y)
         {
+            // Preparing massage data
+            string[] massage = new string[(int)rowCount + 1];
+            massage[0] = "SpawnPlatform";
             // Randomize
             int[] temp = new int[(int)rowCount];
             for (int i = 0; i < rowCount; i++)
@@ -127,19 +129,22 @@ public class GameManager : MonoBehaviour
                 if (platRand < randomPlatfromValue)
                 {
                     temp[i] = 0;
+                    massage[i + 1] = temp[i].ToString();
                 }
                 else
                 {
                     int trapRand = Random.Range(2, 4);
                     temp[i] = trapRand;
+                    massage[i + 1] = temp[i].ToString();
                 }
             }
 
             // Send to other client if host
+            network.SendMassageClient("All", massage);
             SpawnPlatformGames(temp);
         }
     }
-    private void SpawnPlatformGames(int[] platform)
+    public void SpawnPlatformGames(int[] platform)
     {
         // Spawn
         for (int i = 0; i < rowPos.Length; i++)

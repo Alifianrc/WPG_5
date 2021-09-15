@@ -19,14 +19,11 @@ namespace Wkwk_Server
         private List<Player> lobbyList;
         // List of room of the Games
         private List<Room> roomList;
-        // List of disconnected player
-        private List<Player> disconnectedList;
 
         // Player position in server List
         // 0 = onlineList
         // 1 = lobbyList
         // 2 = roomList
-        // 3 = disconnectedList
         public int listPosition;
 
         // Stream
@@ -35,38 +32,61 @@ namespace Wkwk_Server
         private Room myRoom;
         // Is master of room
         private bool isMaster;
+        // Is Online
+        private bool isOnline;
 
-        public Player(TcpClient tcp, List<Player> onlineList, List<Player> lobbyList, List<Room> roomList, List<Player> disconnectedList)
+        // Constructor needed
+        public Player(TcpClient tcp, List<Player> onlineList, List<Player> lobbyList, List<Room> roomList)
         {
             this.tcp = tcp;
             this.onlineList = onlineList;
             this.lobbyList = lobbyList;
             this.roomList = roomList;
-            this.disconnectedList = disconnectedList;
 
             stream = tcp.GetStream();
+            isOnline = true;
         }
 
+        private void CheckConnection()
+        {
+            while (isOnline)
+            {
+                Thread.Sleep(2000);
+                SendMassage("Server", playerName, "SYNA");
+            }
+        }
+
+        // Start receiving massage from this player
         public void StartReceiving()
         {
             Thread recieveThread = new Thread(RecievedMassage);
+            Thread checkConnectionThread = new Thread(CheckConnection);
             recieveThread.Start();
+            checkConnectionThread.Start();
         }
-
         private void RecievedMassage()
         {
-            while (true)
+            while (isOnline)
             {
                 if (stream.DataAvailable)
                 {
-                    // Format recieved : ToWho|Data1|Data2|... 
+                    // Format received : ToWho|Data1|Data2|... 
                     BinaryFormatter formatter = new BinaryFormatter();
                     string data = formatter.Deserialize(stream) as string;
                     string[] info = data.Split("|");
 
                     if (info[0] == "All")
                     {
+                        switch (info[1])
+                        {
+                            case "SpawnPlatform":
+                                string[] mass = new string[] { "SpawnPlatform", info[2], info[3], info[4], info[5], info[6] };
+                                SendMassage("Client", "All", mass);
+                                break;
+                            default:
 
+                                break;
+                        }
                     }
                     else if (info[0] == "AllES")
                     {
@@ -76,9 +96,6 @@ namespace Wkwk_Server
                     {
                         switch (info[1])
                         {
-                            case "SYN":
-                                SendMassage("Server", playerName, "SYNA");
-                                break;
                             case "JoinLobby":
                                 JoinLobby();
                                 break;
@@ -104,6 +121,9 @@ namespace Wkwk_Server
                             case "ExitRoom":
                                 ExitRoom();
                                 break;
+                            case "ChangeName":
+                                playerName = info[2];
+                                break;
                             default:
 
                                 break;
@@ -111,18 +131,21 @@ namespace Wkwk_Server
                     }
                     else
                     {
-                        foreach(Player player in myRoom.playerList)
+                        foreach(Player p in myRoom.playerList)
                         {
-                            // Forwarding massage from clint A to client B
-                            if (info[0] == player.playerName)
+                            if (p.playerName == info[0])
                             {
-                                if (info[1] == "SpawnPlayerToOther")
+                                switch (info[1])
                                 {
-                                    // Client, SpawnPlayer, player.playername, rowPos
-                                    string[] msg = new string[] { "SpawnPlayer", info[0], info[2] };
-                                    SendMassage(playerName, info[0], msg);
-                                    // Print massage
-                                    Console.WriteLine(playerName + " : Send massage 'SpawnPlayerToOther' to " + info[0]);
+                                    case "SpawnMyPlayer":
+                                        string[] theData = new string[] { "SpawnPlayer", info[2], info[3] };
+                                        SendMassage("Client", p.playerName, theData);
+                                        // Print massage
+                                        Console.WriteLine(playerName + " : Send Object Player to " + p.playerName);
+                                        break;
+                                    default:
+
+                                        break;
                                 }
                             }
                         }
@@ -139,60 +162,78 @@ namespace Wkwk_Server
         }
         private void SendMassage(string fromWho, string target, string[] massage)
         {
-            // Send to this player
-            if (target == playerName)
+            if (isOnline)
             {
-                // send format : FromWho|Data1|Data2|...
-                string data = fromWho;
-                // Add data
-                for (int i = 0; i < massage.Length; i++)
+                // Send to this player
+                if (target == playerName)
                 {
-                    data += "|" + massage[i];
-                }
-                BinaryFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(stream, data);
-            }
-
-            // Send to All Player in room
-            else if (target == "All")
-            {
-                // send format : FromWho|Data1|Data2|...
-                string data = fromWho;
-                // Add data
-                for (int i = 0; i < massage.Length; i++)
-                {
-                    data += "|" + massage[i];
-                }
-                BinaryFormatter formatter = new BinaryFormatter();
-                // Send to all
-                foreach(Player player in myRoom.playerList)
-                {
-                    formatter.Serialize(player.stream, data);
-                }
-            }
-
-            // Send to All Player in room excep sender (this)
-            else
-            {
-                foreach (Player player in myRoom.playerList)
-                {
-                    if(target == player.playerName)
+                    // send format : FromWho|Data1|Data2|...
+                    string data = fromWho;
+                    // Add data
+                    for (int i = 0; i < massage.Length; i++)
                     {
-                        // send format : FromWho|Data1|Data2|...
-                        string data = fromWho;
-                        // Add data
-                        for (int i = 0; i < massage.Length; i++)
+                        data += "|" + massage[i];
+                    }
+
+                    SendSerializationDataHandler(stream, data);
+                }
+
+                // Send to All Player in room
+                else if (target == "All")
+                {
+                    // send format : FromWho|Data1|Data2|...
+                    string data = fromWho;
+                    // Add data
+                    for (int i = 0; i < massage.Length; i++)
+                    {
+                        data += "|" + massage[i];
+                    }
+
+                    // Send to all
+                    foreach (Player player in myRoom.playerList)
+                    {
+                        SendSerializationDataHandler(player.stream, data);
+                    }
+                }
+
+                // Send to All Player in room excep sender (this)
+                else if (target == "AllES")
+                {
+                    foreach (Player player in myRoom.playerList)
+                    {
+                        if (target == player.playerName)
                         {
-                            data += "|" + massage[i];
+                            // send format : FromWho|Data1|Data2|...
+                            string data = fromWho;
+                            // Add data
+                            for (int i = 0; i < massage.Length; i++)
+                            {
+                                data += "|" + massage[i];
+                            }
+                            // Send massage
+                            SendSerializationDataHandler(player.stream, data);
                         }
-                        // Send massage
-                        BinaryFormatter formatter = new BinaryFormatter();
-                        formatter.Serialize(player.stream, data);
                     }
                 }
             }
         }
+        private void SendSerializationDataHandler(NetworkStream Thestream, string Thedata)
+        {
+            try
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(Thestream, Thedata);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("Send massage error : " + e.Message);
+                // Disconnect client from server
+                DisconnectFromServer();
+            }
+        }
 
+        // Room and Lobby --------------------------------------------------------------------------
+        // Join lobby method
         private void JoinLobby()
         {
             foreach (Player a in onlineList)
@@ -219,7 +260,6 @@ namespace Wkwk_Server
                 }
             }
         }
-
         // Create room auto
         public void CreateRoom()
         {
@@ -251,6 +291,7 @@ namespace Wkwk_Server
 
                         // Save room
                         myRoom = temp;
+                        isMaster = true;
 
                         // Send massage to client
                         SendMassage("Server", playerName, "JoinedRoom");
@@ -290,7 +331,6 @@ namespace Wkwk_Server
                 }
             }
         }
-
         // Join other players room
         public void JoinRoom(string roomName)
         {
@@ -309,7 +349,6 @@ namespace Wkwk_Server
                 }
             }
         }
-
         // Exit from lobby
         private void ExitLobby()
         {
@@ -329,7 +368,6 @@ namespace Wkwk_Server
             // Print massage
             Console.WriteLine(playerName + " : Exit from Lobby");
         }
-
         // Exit from room
         public void ExitRoom()
         {
@@ -353,6 +391,8 @@ namespace Wkwk_Server
             }
         }
 
+        // Others Method -----------------------------------------------------------------------------------------------
+        // Array of bool for start player row
         private bool[] randomPosUsed = new bool [5];
         // Spawning player in random start position (0-4)
         private void SpawnPlayer()
@@ -370,10 +410,30 @@ namespace Wkwk_Server
             // If it's not
             string[] massage = new string[] { "SpawnPlayer", playerName, randPos.ToString()};
             // Send massage to all player
-            SendMassage("Client", "All", massage);
+            SendMassage("Server", "All", massage);
 
             // Print massage in server
             Console.WriteLine(playerName + " : Request Spawn Player, Get-" + randPos);
+        }
+
+        //
+        private void DisconnectFromServer()
+        {
+            // Print massage
+            Console.WriteLine(playerName + " : Disconnected from server");
+            isOnline = false;
+            if (listPosition == 0)
+            {
+                Server.DisconnectFromServer(this, onlineList);
+            }
+            else if (listPosition == 1)
+            {
+                Server.DisconnectFromServer(this, lobbyList);
+            }
+            else if (listPosition == 2)
+            {
+                Server.DisconnectFromServer(this, myRoom);
+            }
         }
 
         // Custom method to convert sting to bool

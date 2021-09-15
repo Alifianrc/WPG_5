@@ -32,6 +32,12 @@ public class PlayerManager : MonoBehaviour
         manager = FindObjectOfType<GameManager>();
         network = FindObjectOfType<Client>();
 
+        // Set camera
+        if (network.isMaster)
+        {
+            FindObjectOfType<CameraFollow>().playerPos = gameObject.transform;
+        }
+
         // Set player speed
         playerSpeed = playerDefaultSpeed;
 

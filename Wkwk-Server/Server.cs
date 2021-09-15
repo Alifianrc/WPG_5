@@ -15,25 +15,22 @@ namespace Wkwk_Server
         private List<Player> lobbyList;
         // List of room of the Games
         private List<Room> roomList;
-        // List of disconnected player
-        private List<Player> disconnectedList;
 
         // The port
         public int port = 1313;
 
         // Server listener
         private TcpListener serverListener;
-        // Server condition
-        private bool serverIsStarted;
 
         // Constructor / Start method ----------------------------------------------------------------
         public Server()
         {
+            // Initialization
             onlineList = new List<Player>();
             lobbyList = new List<Player>();
             roomList = new List<Room>();
-            disconnectedList = new List<Player>();
 
+            // Try start the server
             try
             {
                 serverListener = new TcpListener(IPAddress.Any, port);
@@ -46,14 +43,12 @@ namespace Wkwk_Server
                 Console.WriteLine("Server Start Error : " + e.Message);
             }
 
-            serverIsStarted = true;
-
             // Start accepting client
             Thread beginListenThread = new Thread(BeginListening);
             beginListenThread.Start();
         }
 
-        // Accepting client, not thread, but looping :v ----------------------------------------------
+        // Accepting client thread ------------------------------------------------------------------
         private void BeginListening()
         {
             while (true)
@@ -66,7 +61,7 @@ namespace Wkwk_Server
             TcpListener listener = (TcpListener)result.AsyncState;
 
             // Ask for name
-            Player player = new Player(listener.EndAcceptTcpClient(result), onlineList, lobbyList, roomList, disconnectedList);
+            Player player = new Player(listener.EndAcceptTcpClient(result), onlineList, lobbyList, roomList);
             NetworkStream tempStream = player.tcp.GetStream();
             string massage = "Server|WHORU";
 
@@ -116,6 +111,33 @@ namespace Wkwk_Server
                 {
                     // Make a new one
                     player.CreateRoom();
+                }
+            }
+        }
+
+        //
+        // Disconnect from server
+        public static void DisconnectFromServer(Player player, List<Player> theList)
+        {
+            for (int i = 0; i < theList.Count; i++)
+            {
+                if (theList[i].tcp == player.tcp)
+                {
+                    theList.Remove(theList[i]);
+                    player.tcp.Close();
+                    player = null;
+                }
+            }
+        }
+        public static void DisconnectFromServer(Player player, Room theRoom)
+        {
+            for (int i = 0; i < theRoom.playerList.Count; i++)
+            {
+                if (theRoom.playerList[i].tcp == player.tcp)
+                {
+                    theRoom.playerList.Remove(theRoom.playerList[i]);
+                    player.tcp.Close();
+                    player = null;
                 }
             }
         }

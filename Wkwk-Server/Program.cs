@@ -6,6 +6,7 @@ namespace Wkwk_Server
     {
         static void Main()
         {
+            // Make the server (server is auto start)
             Server server = new Server();
 
             // Just for not closing

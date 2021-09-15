@@ -18,7 +18,7 @@ public class Client : MonoBehaviour
     public bool isConnected { get; private set; }
 
     // Check connection timer
-    float CheckTime = 2;
+    float CheckTime = 5;
     float checkCountDown;
 
     // Master of room
@@ -30,7 +30,7 @@ public class Client : MonoBehaviour
     // Player
     [SerializeField] private GameObject playerPrefab;
     private List<PlayerManager> playerList;
-    private GameObject myPlayer;
+    private PlayerManager myPlayer;
 
     void Start()
     {
@@ -58,8 +58,6 @@ public class Client : MonoBehaviour
             // Try connecting again and again
             StartCoroutine(TryConnecting());
         }
-
-        StartCoroutine(CheckConnection());
     }
 
     // Try connecting to server
@@ -83,19 +81,6 @@ public class Client : MonoBehaviour
             catch (Exception e)
             {
                 Debug.Log("Try connecting-" + count + " error : " + e.Message);
-            }
-        }
-    }
-
-    private IEnumerator CheckConnection()
-    {
-        while (true)
-        {
-            yield return new WaitForSeconds(CheckTime / 2);
-
-            if (client.Connected && needCheck)
-            {
-                SendMassageClient("Server", "SYN");
             }
         }
     }
@@ -154,7 +139,9 @@ public class Client : MonoBehaviour
                     // If joined in room
                     FindObjectOfType<MainMenuManager>().OnJoinedRoom();
                     break;
-                
+                case "SpawnPlayer":
+                    // Spawn player
+                    SpawnPlayer(data[2], int.Parse(data[3]), true);
                     break;
                 default:
                     Debug.Log("Unreconized massage : " + massage);
@@ -166,27 +153,11 @@ public class Client : MonoBehaviour
             switch (data[1])
             {
                 case "SpawnPlayer":
-                    // Spawn object player
-                    PlayerManager player = Instantiate(playerPrefab).GetComponent<PlayerManager>();
-                    player.playerName = data[2];
-                    player.rowPos = int.Parse(data[3]);
-                    playerList.Add(player);
-                    // Safe if it's mine
-                    if(player.playerName == SaveGame.LoadData().UserName)
-                    {
-                        myPlayer = player.gameObject;
-                        // Set object to be followeb by camera
-                        FindObjectOfType<CameraFollow>().playerPos = myPlayer.gameObject.transform;
-                    }
-                    // Send our player object to other player
-                    else if(player.playerName != SaveGame.LoadData().UserName)
-                    {
-                        // Need more parameter in future
-                        int myRow = myPlayer.GetComponent<PlayerManager>().rowPos;
-                        string[] parameter = new string[] { "SpawnPlayerToOther", myRow.ToString() };
-                        SendMassageClient(player.playerName, parameter);
-                    }
-
+                    SpawnPlayer(data[2], int.Parse(data[3]), false);
+                    break;
+                case "SpawnPlatform":
+                    int[] platformData = new int[] { int.Parse(data[2]), int.Parse(data[3]), int.Parse(data[4]), int.Parse(data[5]), int.Parse(data[6]), };
+                    FindObjectOfType<GameManager>().SpawnPlatformGames(platformData);
                     break;
                 default:
                     Debug.Log("Unreconized massage : " + massage);
@@ -213,6 +184,26 @@ public class Client : MonoBehaviour
 
         BinaryFormatter formatter = new BinaryFormatter();
         formatter.Serialize(networkStream, data);
+    }
+
+    private void SpawnPlayer(string name, int row, bool needFeedback)
+    {
+        PlayerManager tempPlay = Instantiate(playerPrefab).GetComponent<PlayerManager>();
+        tempPlay.playerName = name;
+        tempPlay.rowPos = row;
+        playerList.Add(tempPlay);
+
+        // Check is it's mine
+        if(name == SaveGame.LoadData().UserName)
+        {
+            myPlayer = tempPlay;
+        }
+        else if (needCheck)
+        {
+            // Send Feedback
+            string[] mass = new string[] { "SpawnMyPlayer", myPlayer.playerName, myPlayer.rowPos.ToString() };
+            SendMassageClient(name, mass);
+        }
     }
 
     private string BoolToString(bool a)
