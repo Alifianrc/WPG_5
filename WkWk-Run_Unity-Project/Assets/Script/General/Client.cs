@@ -15,10 +15,13 @@ public class Client : MonoBehaviour
     // 182.253.90.115
     // 127.0.0.1
 
+    // Name 
+    public string MyName { get; private set; }
+
     public bool isConnected { get; private set; }
 
     // Check connection timer
-    float CheckTime = 5;
+    float CheckTime = 8;
     float checkCountDown;
 
     // Master of room
@@ -40,6 +43,8 @@ public class Client : MonoBehaviour
         client = new TcpClient();
 
         checkCountDown = CheckTime;
+
+        MyName = SaveGame.LoadData().UserName;
 
         playerList = new List<PlayerManager>();
 
@@ -139,9 +144,15 @@ public class Client : MonoBehaviour
                     // If joined in room
                     FindObjectOfType<MainMenuManager>().OnJoinedRoom();
                     break;
+                case "RoomNotFound":
+                    FindObjectOfType<JoinRoomPanel>().RoomNotFound();
+                    break;
                 case "SpawnPlayer":
                     // Spawn player
                     SpawnPlayer(data[2], int.Parse(data[3]), true);
+                    break;
+                case "SetToMaster":
+                    isMaster = true;
                     break;
                 default:
                     Debug.Log("Unreconized massage : " + massage);
@@ -158,6 +169,16 @@ public class Client : MonoBehaviour
                 case "SpawnPlatform":
                     int[] platformData = new int[] { int.Parse(data[2]), int.Parse(data[3]), int.Parse(data[4]), int.Parse(data[5]), int.Parse(data[6]), };
                     FindObjectOfType<GameManager>().SpawnPlatformGames(platformData);
+                    break;
+                case "SyncPlr":
+                    foreach(PlayerManager a in playerList)
+                    {
+                        // Refresh player position
+                        if(a.playerName == data[2])
+                        {
+                            a.gameObject.transform.position = new Vector2(int.Parse(data[3]), int.Parse(data[4]));
+                        }
+                    }
                     break;
                 default:
                     Debug.Log("Unreconized massage : " + massage);
@@ -194,7 +215,7 @@ public class Client : MonoBehaviour
         playerList.Add(tempPlay);
 
         // Check is it's mine
-        if(name == SaveGame.LoadData().UserName)
+        if(name == MyName)
         {
             myPlayer = tempPlay;
         }

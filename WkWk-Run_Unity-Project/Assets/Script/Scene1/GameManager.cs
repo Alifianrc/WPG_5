@@ -91,7 +91,10 @@ public class GameManager : MonoBehaviour
         {
             SpawnPlatformGames();
         }
-
+        else if(GameIsStarted && !network.isMaster)
+        {
+            
+        }
     }
 
     // Creating map for start

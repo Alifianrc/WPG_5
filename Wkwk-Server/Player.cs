@@ -34,6 +34,7 @@ namespace Wkwk_Server
         private bool isMaster;
         // Is Online
         private bool isOnline;
+        private bool needCheck;
 
         // Constructor needed
         public Player(TcpClient tcp, List<Player> onlineList, List<Player> lobbyList, List<Room> roomList)
@@ -45,13 +46,14 @@ namespace Wkwk_Server
 
             stream = tcp.GetStream();
             isOnline = true;
+            needCheck = true;
         }
 
         private void CheckConnection()
         {
-            while (isOnline)
+            while (isOnline && needCheck)
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(5000);
                 SendMassage("Server", playerName, "SYNA");
             }
         }
@@ -90,7 +92,16 @@ namespace Wkwk_Server
                     }
                     else if (info[0] == "AllES")
                     {
+                        switch (info[1])
+                        {
+                            case "SyncPlr":
+                                string[] mass = new string[] { "SyncPlr", playerName, info[2], info[3] };
+                                SendMassage("Client", "AllES", mass);
+                                break;
+                            default:
 
+                                break;
+                        }
                     }
                     else if (info[0] == "Server")
                     {
@@ -201,7 +212,7 @@ namespace Wkwk_Server
                 {
                     foreach (Player player in myRoom.playerList)
                     {
-                        if (target == player.playerName)
+                        if (player.playerName != playerName)
                         {
                             // send format : FromWho|Data1|Data2|...
                             string data = fromWho;
@@ -246,6 +257,8 @@ namespace Wkwk_Server
                     // Add to Lobby list
                     lobbyList.Add(a);
                     listPosition = 1;
+
+                    needCheck = true;
 
                     // Send massage to client
                     SendMassage("Server", playerName, "JoinedLobby");
@@ -293,8 +306,10 @@ namespace Wkwk_Server
                         myRoom = temp;
                         isMaster = true;
 
+                        needCheck = false;
+
                         // Send massage to client
-                        SendMassage("Server", playerName, "JoinedRoom");
+                        SendMassage("Server", playerName, "CreatedRoom");
 
                         // Print massage in server
                         Console.WriteLine(playerName + " : Joined room " + myRoom.roomName);
@@ -319,6 +334,7 @@ namespace Wkwk_Server
 
                         // Save room
                         myRoom = temp;
+                        isMaster = true;
 
                         // Send massage to client
                         SendMassage("Server", playerName, "CreatedRoom");
@@ -344,10 +360,17 @@ namespace Wkwk_Server
                     a.CheckRoom();
                     myRoom = a;
 
+                    needCheck = false;
+
                     // Print massage
                     Console.WriteLine(playerName + " : Joined room " + myRoom.roomName);
+
+                    return;
                 }
             }
+
+            // If not join room
+            SendMassage("Server", playerName, "RoomNotFound");
         }
         // Exit from lobby
         private void ExitLobby()
@@ -362,6 +385,8 @@ namespace Wkwk_Server
                     // Add to Lobby list
                     onlineList.Add(a);
                     listPosition = 0;
+
+                    needCheck = true;
                 }
             }
 
@@ -384,6 +409,8 @@ namespace Wkwk_Server
 
                     myRoom.CheckRoom();
                     myRoom = null;
+
+                    needCheck = true;
 
                     // Print massage
                     Console.WriteLine(playerName + " : Exit from room " + myRoom.roomName);
@@ -415,8 +442,8 @@ namespace Wkwk_Server
             // Print massage in server
             Console.WriteLine(playerName + " : Request Spawn Player, Get-" + randPos);
         }
-
-        //
+       
+        // Disconnect from server
         private void DisconnectFromServer()
         {
             // Print massage
@@ -432,8 +459,28 @@ namespace Wkwk_Server
             }
             else if (listPosition == 2)
             {
+                // If this is master, set other player to master
+                if (isMaster)
+                {
+                    for(int i = 0;i < myRoom.playerList.Count; i++)
+                    {
+                        if(myRoom.playerList[i].playerName != playerName)
+                        {
+                            myRoom.playerList[i].SetToMaster();
+                        }
+                    }
+                }
                 Server.DisconnectFromServer(this, myRoom);
             }
+        }
+
+        // Set this player to master
+        public void SetToMaster()
+        {
+            isMaster = true;
+            SendMassage("Server", playerName, "SetToMaster");
+            // print massage
+            Console.WriteLine(playerName + " : Become a master of room " + myRoom.roomName);
         }
 
         // Custom method to convert sting to bool

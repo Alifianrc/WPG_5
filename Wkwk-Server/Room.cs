@@ -22,11 +22,20 @@ namespace Wkwk_Server
             if(playerList.Count == MaxPlayer)
             {
                 canJoin = false;
+                // Start the game
+
+            }
+            else if (playerList.Count >= 2)
+            {
+                // Play button active
+
             }
             else
             {
                 canJoin = true;
             }
         }
+
+
     }
 }

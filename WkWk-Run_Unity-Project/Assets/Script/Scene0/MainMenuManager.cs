@@ -10,7 +10,6 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject selectNamePanel;
     [SerializeField] private GameObject connectingPanel;
     [SerializeField] private GameObject matchmakingPanel;
-    [SerializeField] private GameObject createRoomPanel;
 
     // Game data
     [HideInInspector] public SaveData theData { get; set; }
@@ -45,6 +44,7 @@ public class MainMenuManager : MonoBehaviour
     {
         // Join Lobby
         network.SendMassageClient("Server", "JoinLobby");
+        matchmakingPanel.SetActive(true);
     }
     public void OnJoinedLobby()
     {
@@ -54,14 +54,7 @@ public class MainMenuManager : MonoBehaviour
     {
         SceneManager.LoadScene(1);
     }
-
-    // Method for Crate Room Button
-    public void CreateRoomButton()
-    {
-        // Create room
-
-       
-    }
+    
 
     // Checking connection regulary
     private IEnumerator CheckConnection()

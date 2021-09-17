@@ -49,7 +49,7 @@ public class PlayerManager : MonoBehaviour
     void Update()
     {
         // If the game is started
-        if (manager.GameIsStarted && network.isMaster)
+        if (manager.GameIsStarted && playerName == network.MyName)
         {
             // Player start running
             transform.position = new Vector2(transform.position.x, transform.position.y + (playerSpeed * Time.deltaTime));
@@ -62,6 +62,10 @@ public class PlayerManager : MonoBehaviour
             {
                 MovePositionRow();
             }
+
+            // Sync position
+            string[] massage = new string[] { "SyncPlr", transform.position.x.ToString(), transform.position.y.ToString() };
+            network.SendMassageClient("AllES", massage);
         }
     }
 

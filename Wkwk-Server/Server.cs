@@ -22,6 +22,9 @@ namespace Wkwk_Server
         // Server listener
         private TcpListener serverListener;
 
+        // Boolean
+        public bool serverIsOnline;
+
         // Constructor / Start method ----------------------------------------------------------------
         public Server()
         {
@@ -35,6 +38,7 @@ namespace Wkwk_Server
             {
                 serverListener = new TcpListener(IPAddress.Any, port);
                 serverListener.Start();
+                serverIsOnline = true;
 
                 Console.WriteLine("------- Server Started -------\n");
             }
@@ -49,7 +53,7 @@ namespace Wkwk_Server
         }
 
         // Accepting client thread ------------------------------------------------------------------
-        private void BeginListening()
+        public void BeginListening()
         {
             while (true)
             {

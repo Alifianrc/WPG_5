@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace Wkwk_Server
 {
@@ -10,7 +11,7 @@ namespace Wkwk_Server
             Server server = new Server();
 
             // Just for not closing
-            while (true)
+            while (server.serverIsOnline)
             {
 
             }
