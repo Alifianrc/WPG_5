@@ -17,7 +17,7 @@ namespace Wkwk_Server
         private List<Room> roomList;
 
         // The port
-        public int port = 1313;
+        public int port;
 
         // Server listener
         private TcpListener serverListener;
@@ -26,12 +26,14 @@ namespace Wkwk_Server
         public bool serverIsOnline;
 
         // Constructor / Start method ----------------------------------------------------------------
-        public Server()
+        public Server(int port)
         {
             // Initialization
             onlineList = new List<Player>();
             lobbyList = new List<Player>();
             roomList = new List<Room>();
+            this.port = port;
+
 
             // Try start the server
             try
@@ -40,52 +42,53 @@ namespace Wkwk_Server
                 serverListener.Start();
                 serverIsOnline = true;
 
-                Console.WriteLine("------- Server Started -------\n");
+                Console.WriteLine("------- Server Port " + port + " Created -------\n");
             }
             catch (Exception e)
             {
                 Console.WriteLine("Server Start Error : " + e.Message);
-            }
+            }        
+        }
 
+        public void StartListening()
+        {
             // Start accepting client
-            Thread beginListenThread = new Thread(BeginListening);
+            Console.WriteLine(">> Server : Begin Listening");
+            Thread beginListenThread = new Thread(BeginAcceptClient);
             beginListenThread.Start();
         }
 
         // Accepting client thread ------------------------------------------------------------------
-        public void BeginListening()
+        private void BeginAcceptClient()
         {
-            while (true)
+            while (serverIsOnline)
             {
-                serverListener.BeginAcceptTcpClient(AcceptClient, serverListener);
+                // Accept Client
+                TcpClient client = serverListener.AcceptTcpClient();
+
+                // Ask for name
+                Player player = new Player(client, onlineList, lobbyList, roomList);
+                NetworkStream tempStream = player.tcp.GetStream();
+                string massage = "Server|WHORU";
+
+                BinaryFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(tempStream, massage);
+
+                // Waiting for answer
+                string answer = formatter.Deserialize(tempStream) as string;
+                string[] info = answer.Split("|");
+
+                // Add to list
+                player.playerName = info[1];
+                onlineList.Add(player);
+                player.listPosition = 0;
+
+                // Start player
+                player.StartReceiving();
+
+                // Print massage in console
+                Console.WriteLine("Server : Client " + player.playerName + " is online");
             }
-        }
-        private void AcceptClient(IAsyncResult result)
-        {
-            TcpListener listener = (TcpListener)result.AsyncState;
-
-            // Ask for name
-            Player player = new Player(listener.EndAcceptTcpClient(result), onlineList, lobbyList, roomList);
-            NetworkStream tempStream = player.tcp.GetStream();
-            string massage = "Server|WHORU";
-
-            BinaryFormatter formatter = new BinaryFormatter();
-            formatter.Serialize(tempStream, massage);
-
-            // Waiting for answer
-            string answer = formatter.Deserialize(tempStream) as string;
-            string[] info = answer.Split("|");
-
-            // Add to list
-            player.playerName = info[1];
-            onlineList.Add(player);
-            player.listPosition = 0;
-
-            // Start player
-            player.StartReceiving();
-
-            // Print massage in console
-            Console.WriteLine("Server : Client " + player.playerName + " is online");
         }
 
         // Matchmaking -------------------------------------------------------------------------------

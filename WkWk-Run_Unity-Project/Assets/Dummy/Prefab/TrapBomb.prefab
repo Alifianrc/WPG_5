@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7421777418663064100}
   - component: {fileID: 7109089860964384968}
   - component: {fileID: 9041037872364910929}
+  - component: {fileID: -7565339104741319604}
   m_Layer: 0
   m_Name: TrapBomb
   m_TagString: Untagged
@@ -108,3 +109,15 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.9779372, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &-7565339104741319604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5619302375313537862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d6a7c98312a81b4e861d16dc1b4bc70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

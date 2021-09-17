@@ -14,8 +14,9 @@ public class PlayerManager : MonoBehaviour
     private GameManager manager;
     private Client network;
 
+    private Transform finishPoint;
+
     // Swipe control
-    
     private Vector2 startTouchPos;
     private Vector2 endTouchPos;
     private Vector2 currentTouchPos;
@@ -31,6 +32,7 @@ public class PlayerManager : MonoBehaviour
         // Game manager
         manager = FindObjectOfType<GameManager>();
         network = FindObjectOfType<Client>();
+        finishPoint = manager.FinishPoint;
 
         // Set camera
         if (network.isMaster)
@@ -66,6 +68,15 @@ public class PlayerManager : MonoBehaviour
             // Sync position
             string[] massage = new string[] { "SyncPlr", transform.position.x.ToString(), transform.position.y.ToString() };
             network.SendMassageClient("AllES", massage);
+
+            // Check if finish
+            if (transform.position.y > finishPoint.position.y)
+            {
+                // Tell server
+
+                // Some UI
+
+            }
         }
     }
 

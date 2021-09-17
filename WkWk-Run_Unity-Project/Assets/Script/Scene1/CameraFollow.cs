@@ -5,6 +5,7 @@ using UnityEngine;
 public class CameraFollow : MonoBehaviour
 {
     private GameManager manager;
+    public Transform PlatformDestroyerPoint;
 
     public Transform playerPos { get; set; }
     private float offsetY = 2f;

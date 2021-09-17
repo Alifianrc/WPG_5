@@ -25,10 +25,7 @@ public class Client : MonoBehaviour
     float checkCountDown;
 
     // Master of room
-    public bool isMaster { get; private set; }
-
-    // Checking connection
-    bool needCheck;
+    [SerializeField] public bool isMaster { get; private set; }
 
     // Player
     [SerializeField] private GameObject playerPrefab;
@@ -124,7 +121,6 @@ public class Client : MonoBehaviour
                 case "WHORU":
                     // Send player name
                     SendMassageClient("Server", SaveGame.LoadData().UserName);
-                    needCheck = true;
                     break;
                 case "SYNA":
                     // Connection check success
@@ -219,7 +215,7 @@ public class Client : MonoBehaviour
         {
             myPlayer = tempPlay;
         }
-        else if (needCheck)
+        else
         {
             // Send Feedback
             string[] mass = new string[] { "SpawnMyPlayer", myPlayer.playerName, myPlayer.rowPos.ToString() };

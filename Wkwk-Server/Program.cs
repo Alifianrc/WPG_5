@@ -8,13 +8,8 @@ namespace Wkwk_Server
         static void Main()
         {
             // Make the server (server is auto start)
-            Server server = new Server();
-
-            // Just for not closing
-            while (server.serverIsOnline)
-            {
-
-            }
+            Server server = new Server(1313);
+            server.StartListening();
         }
     }
 }

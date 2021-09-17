@@ -8,6 +8,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject menuPanel;
     [SerializeField] private GameObject startPanel;
     [SerializeField] private GameObject waitingPlayerPanel;
+    [SerializeField] private GameObject finishPanel;
+    [SerializeField] private GameObject losePanel;
 
     // Boolean
     public bool GameIsStarted { get; set; }
@@ -39,9 +41,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform[] rowPos;
     [HideInInspector] public float[] rowXPos { get; private set; }
 
+    // Finish Position
+    public Transform FinishPoint;
+
     // Network
     private Client network;
-    [SerializeField] private GameObject networkPrefab;
 
     // Start is called before the first frame update
     private void Start()
