@@ -23,19 +23,17 @@ namespace Wkwk_Server
             {
                 canJoin = false;
                 // Start the game
-
-            }
-            else if (playerList.Count >= 2)
-            {
-                // Play button active
-
             }
             else
             {
                 canJoin = true;
             }
+
+            if (playerList.Count >= 2)
+            {
+                // Play button active
+
+            }
         }
-
-
     }
 }

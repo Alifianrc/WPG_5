@@ -94,36 +94,35 @@ namespace Wkwk_Server
         // Matchmaking -------------------------------------------------------------------------------
         public static void Matchmaking(Player player, List<Player> lobbyList, List<Room> roomList)
         {
-            // Check list
-            if(lobbyList.Count > 0)
+            // If there is some room
+            if (roomList.Count > 0)
             {
-                bool joinedRoom = false;
-                // If there is some room
-                if (roomList.Count > 0)
+                // Check each room
+                for (int j = 0; j < roomList.Count; j++)
                 {
-                    // Check each room
-                    for (int j = 0; j < roomList.Count; j++)
+                    // If room is public
+                    if (roomList[j].isPublic && roomList[j].canJoin)
                     {
-                        // If room is public
-                        if (roomList[j].isPublic && roomList[j].canJoin)
-                        {
-                            player.JoinRoom(roomList[j].roomName);
-                            joinedRoom = true;
-                            return;
-                        }
+                        player.JoinRoom(roomList[j].roomName);
+                        return;
+                    }
+                    if (roomList[j].isPublic)
+                    {
+                        Console.WriteLine("Is Public");
+                    }
+                    if (roomList[j].canJoin)
+                    {
+                        Console.WriteLine("Can Join");
                     }
                 }
-                // If there is room check each room
-                else if (roomList.Count <= 0 && joinedRoom == false)
-                {
-                    // Make a new one
-                    player.CreateRoom();
-                }
             }
+            // If there is no room that can join
+            // Make a new one
+            player.CreateRoom();
         }
 
         //
-        // Disconnect from server
+        // Disconnect from server --------------------------------------------------------------
         public static void DisconnectFromServer(Player player, List<Player> theList)
         {
             for (int i = 0; i < theList.Count; i++)

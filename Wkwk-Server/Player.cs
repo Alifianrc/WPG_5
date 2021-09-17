@@ -142,17 +142,17 @@ namespace Wkwk_Server
                     }
                     else
                     {
-                        foreach(Player p in myRoom.playerList)
+                        for(int i = 0; i < myRoom.playerList.Count; i++)
                         {
-                            if (p.playerName == info[0])
+                            if (myRoom.playerList[i].playerName == info[0])
                             {
                                 switch (info[1])
                                 {
                                     case "SpawnMyPlayer":
-                                        string[] theData = new string[] { "SpawnPlayer", info[2], info[3] };
-                                        SendMassage("Client", p.playerName, theData);
+                                        string[] theData = new string[] { "SpawnPlayer", info[2], info[3], BoolToString(false) };
+                                        SendMassage("Client", myRoom.playerList[i].playerName, theData);
                                         // Print massage
-                                        Console.WriteLine(playerName + " : Send Object Player to " + p.playerName);
+                                        Console.WriteLine(playerName + " : Send Object Player to " + myRoom.playerList[i].playerName);
                                         break;
                                     default:
 
@@ -210,19 +210,40 @@ namespace Wkwk_Server
                 // Send to All Player in room excep sender (this)
                 else if (target == "AllES")
                 {
-                    foreach (Player player in myRoom.playerList)
+                    for (int i = 0; i < myRoom.playerList.Count; i++)
                     {
-                        if (player.playerName != playerName)
+                        if (myRoom.playerList[i].playerName != playerName)
                         {
                             // send format : FromWho|Data1|Data2|...
                             string data = fromWho;
                             // Add data
-                            for (int i = 0; i < massage.Length; i++)
+                            for (int j = 0; j < massage.Length; j++)
                             {
-                                data += "|" + massage[i];
+                                data += "|" + massage[j];
                             }
                             // Send massage
-                            SendSerializationDataHandler(player.stream, data);
+                            SendSerializationDataHandler(myRoom.playerList[i].stream, data);
+                        }
+                    }
+                }
+
+                // Send to specific client
+                else
+                {
+                    for (int i = 0; i < myRoom.playerList.Count; i++)
+                    {
+                        if(myRoom.playerList[i].playerName == target)
+                        {
+                            // send format : FromWho|Data1|Data2|...
+                            string data = fromWho;
+                            // Add data
+                            for (int j = 0; j < massage.Length; j++)
+                            {
+                                data += "|" + massage[j];
+                            }
+
+                            // Send massage
+                            SendSerializationDataHandler(myRoom.playerList[i].stream, data);
                         }
                     }
                 }
@@ -287,6 +308,7 @@ namespace Wkwk_Server
             temp.MaxPlayer = int.Parse(playerMax);
             temp.isPublic = StringToBool(isPublic);
             temp.playerList = new List<Player>();
+            temp.canJoin = true;
 
             if(listPosition == 0)
             {
@@ -305,6 +327,7 @@ namespace Wkwk_Server
                         // Save room
                         myRoom = temp;
                         isMaster = true;
+                        roomList.Add(myRoom);
 
                         needCheck = false;
 
@@ -335,6 +358,7 @@ namespace Wkwk_Server
                         // Save room
                         myRoom = temp;
                         isMaster = true;
+                        roomList.Add(myRoom);
 
                         // Send massage to client
                         SendMassage("Server", playerName, "CreatedRoom");
@@ -361,6 +385,9 @@ namespace Wkwk_Server
                     myRoom = a;
 
                     needCheck = false;
+
+                    // Send massage to client
+                    SendMassage("Server", playerName, "JoinedRoom");
 
                     // Print massage
                     Console.WriteLine(playerName + " : Joined room " + myRoom.roomName);
@@ -435,7 +462,7 @@ namespace Wkwk_Server
             }
 
             // If it's not
-            string[] massage = new string[] { "SpawnPlayer", playerName, randPos.ToString()};
+            string[] massage = new string[] { "SpawnPlayer", playerName, randPos.ToString(), BoolToString(true) };
             // Send massage to all player
             SendMassage("Server", "All", massage);
 
@@ -494,6 +521,17 @@ namespace Wkwk_Server
             else
             {
                 return true;
+            }
+        }
+        private string BoolToString(bool a)
+        {
+            if (a == false)
+            {
+                return "0";
+            }
+            else
+            {
+                return "1";
             }
         }
     }
