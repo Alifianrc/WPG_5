@@ -93,7 +93,7 @@ public class GameManager : MonoBehaviour
         // If the game is started
         if (GameIsStarted && network.isMaster)
         {
-            SpawnPlatformGames();
+            
         }
         else if(GameIsStarted && !network.isMaster)
         {
@@ -119,36 +119,44 @@ public class GameManager : MonoBehaviour
     }
 
     // Platform spaner
-    private void SpawnPlatformGames()
+    public void StartSpawnPlatform()
     {
-        // Check spawn position
-        if(platformSpawnPoint.position.y > rowPos[0].position.y)
+        StartCoroutine(SpawnPlatformGames());
+    }
+    private IEnumerator SpawnPlatformGames()
+    {
+        while (GameIsStarted)
         {
-            // Preparing massage data
-            string[] massage = new string[(int)rowCount + 1];
-            massage[0] = "SpawnPlatform";
-            // Randomize
-            int[] temp = new int[(int)rowCount];
-            for (int i = 0; i < rowCount; i++)
+            // Check spawn position
+            if (platformSpawnPoint.position.y > rowPos[0].position.y)
             {
-                //temp[i] = new int();
-                int platRand = Random.Range(1, 101);
-                if (platRand < randomPlatfromValue)
+                // Preparing massage data
+                string[] massage = new string[(int)rowCount + 1];
+                massage[0] = "SpawnPlatform";
+                // Randomize
+                int[] temp = new int[(int)rowCount];
+                for (int i = 0; i < rowCount; i++)
                 {
-                    temp[i] = 0;
-                    massage[i + 1] = temp[i].ToString();
+                    //temp[i] = new int();
+                    int platRand = Random.Range(1, 101);
+                    if (platRand < randomPlatfromValue)
+                    {
+                        temp[i] = 0;
+                        massage[i + 1] = temp[i].ToString();
+                    }
+                    else
+                    {
+                        int trapRand = Random.Range(2, 4);
+                        temp[i] = trapRand;
+                        massage[i + 1] = temp[i].ToString();
+                    }
                 }
-                else
-                {
-                    int trapRand = Random.Range(2, 4);
-                    temp[i] = trapRand;
-                    massage[i + 1] = temp[i].ToString();
-                }
-            }
 
-            // Send to other client if host
-            network.SendMassageClient("All", massage);
-            SpawnPlatformGames(temp);
+                // Send to other client if host
+                network.SendMassageClient("All", massage);
+                SpawnPlatformGames(temp);
+            }
+            yield return new WaitForSeconds(.7f);
         }
     }
     public void SpawnPlatformGames(int[] platform)

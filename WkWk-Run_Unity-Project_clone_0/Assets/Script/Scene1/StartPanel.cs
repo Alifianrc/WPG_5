@@ -19,13 +19,19 @@ public class StartPanel : MonoBehaviour
     private float startTime;
 
     // Game manager
-    GameManager manager;
+    private GameManager manager;
+    private Client network;
 
     private void Start()
     {
         startTime = Time.time;
 
         manager = FindObjectOfType<GameManager>();
+        network = FindObjectOfType<Client>();
+
+        startManualButton.SetActive(false);
+
+        StartCoroutine(CheckRoom());
     }
 
     // Update is called once per frame
@@ -34,27 +40,46 @@ public class StartPanel : MonoBehaviour
        
     }
 
-    // Manually start the games
-    public void StartGamesManual()
+    // Check room condition
+    IEnumerator CheckRoom()
     {
-        StartGame();
+        while (!manager.GameIsStarted)
+        {
+            // Check room condition
+            if (network.isMaster && network.PlayerCountInRoom() >= 2)
+            {
+                try
+                {
+                    startManualButton.SetActive(true);
+                }
+                catch
+                {
+
+                }
+            }
+
+            yield return new WaitForSeconds(2);
+        }
     }
 
+    // For manually start the game
+    public void StartGameServer()
+    {
+        network.SendMassageClient("All", "StartGame");
+    }
 
+    // Start the games
     public void StartGame()
     {
         // Start the games
 
         // Set Panel
-        //waitingPlayerPanel.SetActive(false);
         Destroy(waitingPlayerPanel);
-
-        // Multiplayer
-        // Lock room (new player can't join)
 
         // Begin count down
         StartCoroutine(CountDownStart());
     }
+
     private IEnumerator CountDownStart()
     {
         // Start count down
@@ -76,6 +101,10 @@ public class StartPanel : MonoBehaviour
 
         // Set Bool
         manager.GameIsStarted = true;
+
+        // Begin Couretine
+        manager.StartSpawnPlatform();
+        network.StartSyncPlayer();
 
         Destroy(gameObject);
     }

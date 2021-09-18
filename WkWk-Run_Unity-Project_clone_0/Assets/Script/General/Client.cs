@@ -178,6 +178,13 @@ public class Client : MonoBehaviour
                         }
                     }
                     break;
+                case "StartGame":
+                    FindObjectOfType<StartPanel>().StartGame();
+                    Debug.Log("Game Started");
+                    break;
+                case "ChangeRow":
+                    ChangePlayerRow(data[2], int.Parse(data[3]));
+                    break;
                 default:
                     Debug.Log("Unreconized massage : " + massage);
                     break;
@@ -222,6 +229,33 @@ public class Client : MonoBehaviour
             // Send Feedback
             string[] mass = new string[] { "SpawnMyPlayer", myPlayer.playerName, myPlayer.rowPos.ToString(), BoolToString(false) };
             SendMassageClient(name, mass);
+        }
+    }
+
+    public void StartSyncPlayer()
+    {
+        foreach(PlayerManager a in playerList)
+        {
+            if(a.playerName == myPlayer.playerName)
+            {
+                a.BeginSyncPos();
+            }
+        }
+    }
+
+    public int PlayerCountInRoom()
+    {
+        return playerList.Count;
+    }
+
+    public void ChangePlayerRow(string thePlayerName, int row)
+    {
+        foreach(PlayerManager a in playerList)
+        {
+            if(a.playerName == thePlayerName)
+            {
+                a.SetBoolRowChange(row);
+            }
         }
     }
 

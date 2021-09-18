@@ -51,32 +51,49 @@ public class PlayerManager : MonoBehaviour
     void Update()
     {
         // If the game is started
-        if (manager.GameIsStarted && playerName == network.MyName)
+        if (manager.GameIsStarted)
         {
             // Player start running
             transform.position = new Vector2(transform.position.x, transform.position.y + (playerSpeed * Time.deltaTime));
 
-            // Detect swipe screen
-            SwipeControl();
-
-            // Send position to another player
+            // Check changing row
             if (rowChanged)
             {
+                // Send massage
                 MovePositionRow();
             }
 
+            if (playerName == network.MyName)
+            {
+                // Detect swipe screen
+                SwipeControl();
+
+                // Check if finish
+                if (transform.position.y > finishPoint.position.y)
+                {
+                    // Tell server
+
+                    // Some UI
+
+                }
+            }
+        }
+    }
+
+    // Start Sync position
+    public void BeginSyncPos()
+    {
+        StartCoroutine(SyncPos());
+    }
+    private IEnumerator SyncPos()
+    {
+        while (manager.GameIsStarted)
+        {
             // Sync position
             string[] massage = new string[] { "SyncPlr", transform.position.x.ToString(), transform.position.y.ToString() };
             network.SendMassageClient("AllES", massage);
 
-            // Check if finish
-            if (transform.position.y > finishPoint.position.y)
-            {
-                // Tell server
-
-                // Some UI
-
-            }
+            yield return new WaitForSeconds(5f);
         }
     }
 
@@ -99,7 +116,8 @@ public class PlayerManager : MonoBehaviour
                     if(rowPos != 0)
                     {
                         rowPos--;
-                        rowChanged = true;
+                        string[] mas = new string[] { "ChangeRow", rowPos.ToString() };
+                        network.SendMassageClient("All", mas);
                     }
                     touchStopped = true;
                 }
@@ -108,7 +126,8 @@ public class PlayerManager : MonoBehaviour
                     if (rowPos != 4)
                     {
                         rowPos++;
-                        rowChanged = true;
+                        string[] mas = new string[] { "ChangeRow", rowPos.ToString() };
+                        network.SendMassageClient("All", mas);
                     }
                     touchStopped = true;
                 }
@@ -138,7 +157,6 @@ public class PlayerManager : MonoBehaviour
             }
         }
     }
-
     private void MovePositionRow()
     {
         float beginPos = transform.position.x;
@@ -149,5 +167,11 @@ public class PlayerManager : MonoBehaviour
         {
             rowChanged = false;
         }
+    }
+
+    public void SetBoolRowChange(int newRow)
+    {
+        rowPos = newRow;
+        rowChanged = true;
     }
 }

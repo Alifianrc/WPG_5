@@ -85,6 +85,14 @@ namespace Wkwk_Server
                                 string[] mass = new string[] { "SpawnPlatform", info[2], info[3], info[4], info[5], info[6] };
                                 SendMassage("Client", "All", mass);
                                 break;
+                            case "StartGame":
+                                SendMassage("Client", "All", "StartGame");
+                                Console.WriteLine(playerName + " : Start Game on Room " + myRoom.roomName);
+                                break;
+                            case "ChangeRow":
+                                string[] massag = new string[] { "ChangeRow", playerName, info[2] };
+                                SendMassage("Client", "All", massag);
+                                break;
                             default:
 
                                 break;
@@ -201,9 +209,9 @@ namespace Wkwk_Server
                     }
 
                     // Send to all
-                    foreach (Player player in myRoom.playerList)
+                    for(int i = 0; i < myRoom.playerList.Count; i++)
                     {
-                        SendSerializationDataHandler(player.stream, data);
+                        SendSerializationDataHandler(myRoom.playerList[i].stream, data);
                     }
                 }
 
@@ -456,10 +464,13 @@ namespace Wkwk_Server
             int randPos = rand.Next(5);
 
             // If it's used
-            while(randomPosUsed[randPos] == true)
+            while(randomPosUsed[randPos])
             {
                 randPos = rand.Next(5);
             }
+
+            // If it's not
+            randomPosUsed[randPos] = true;
 
             // If it's not
             string[] massage = new string[] { "SpawnPlayer", playerName, randPos.ToString(), BoolToString(true) };

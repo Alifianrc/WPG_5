@@ -28,12 +28,11 @@ namespace Wkwk_Server
             {
                 canJoin = true;
             }
+        }
 
-            if (playerList.Count >= 2)
-            {
-                // Play button active
-
-            }
+        public void DesableCanJoin()
+        {
+            canJoin = false;
         }
     }
 }
