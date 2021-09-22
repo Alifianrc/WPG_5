@@ -57,7 +57,7 @@ public class MainMenuManager : MonoBehaviour
     
 
     // Checking connection regulary
-    private IEnumerator CheckConnection()
+    public IEnumerator CheckConnection()
     {
         while (true)
         {
@@ -69,7 +69,6 @@ public class MainMenuManager : MonoBehaviour
             {
                 connectingPanel.SetActive(true);
             }
-            
             // Delay
             yield return new WaitForSeconds(2);
         }

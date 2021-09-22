@@ -11,11 +11,14 @@ namespace Wkwk_Server
         // Room is public or not
         public bool isPublic;
         // Can Join Room or Not
-        public bool canJoin;
+        public bool canJoin { get; private set; }
         // Maximum player in this room
         public int MaxPlayer;
         // List of player in this room
         public List<Player> playerList;
+
+        // Array of bool for start player spawn row
+        public bool[] randomPosUsed = new bool[5];
 
         public void CheckRoom()
         {
@@ -29,10 +32,9 @@ namespace Wkwk_Server
                 canJoin = true;
             }
         }
-
-        public void DesableCanJoin()
+        public void SetCanJoin(bool value)
         {
-            canJoin = false;
+            canJoin = value;
         }
     }
 }

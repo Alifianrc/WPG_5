@@ -36,6 +36,8 @@ namespace Wkwk_Server
         private bool isOnline;
         private bool needCheck;
 
+       
+
         // Constructor needed
         public Player(TcpClient tcp, List<Player> onlineList, List<Player> lobbyList, List<Room> roomList)
         {
@@ -49,6 +51,7 @@ namespace Wkwk_Server
             needCheck = true;
         }
 
+        // Check player connection
         private void CheckConnection()
         {
             while (isOnline && needCheck)
@@ -86,6 +89,8 @@ namespace Wkwk_Server
                                 SendMassage("Client", "All", mass);
                                 break;
                             case "StartGame":
+                                // Lock room
+                                myRoom.SetCanJoin(false);
                                 SendMassage("Client", "All", "StartGame");
                                 Console.WriteLine(playerName + " : Start Game on Room " + myRoom.roomName);
                                 break;
@@ -173,6 +178,7 @@ namespace Wkwk_Server
             }
         }
 
+        // Send massage
         private void SendMassage(string fromWho, string target, string massage)
         {
             string[] data = new string[1];
@@ -266,7 +272,7 @@ namespace Wkwk_Server
             }
             catch(Exception e)
             {
-                Console.WriteLine("Send massage error : " + e.Message);
+                Console.WriteLine("Send massage error from " + playerName + " : " + e.Message);
                 // Disconnect client from server
                 DisconnectFromServer();
             }
@@ -316,7 +322,7 @@ namespace Wkwk_Server
             temp.MaxPlayer = int.Parse(playerMax);
             temp.isPublic = StringToBool(isPublic);
             temp.playerList = new List<Player>();
-            temp.canJoin = true;
+            temp.SetCanJoin(true);
 
             if(listPosition == 0)
             {
@@ -454,8 +460,6 @@ namespace Wkwk_Server
         }
 
         // Others Method -----------------------------------------------------------------------------------------------
-        // Array of bool for start player row
-        private bool[] randomPosUsed = new bool [5];
         // Spawning player in random start position (0-4)
         private void SpawnPlayer()
         {
@@ -464,13 +468,13 @@ namespace Wkwk_Server
             int randPos = rand.Next(5);
 
             // If it's used
-            while(randomPosUsed[randPos])
+            while(myRoom.randomPosUsed[randPos])
             {
                 randPos = rand.Next(5);
             }
 
             // If it's not
-            randomPosUsed[randPos] = true;
+            myRoom.randomPosUsed[randPos] = true;
 
             // If it's not
             string[] massage = new string[] { "SpawnPlayer", playerName, randPos.ToString(), BoolToString(true) };
@@ -508,7 +512,8 @@ namespace Wkwk_Server
                         }
                     }
                 }
-                Server.DisconnectFromServer(this, myRoom);
+
+                Server.DisconnectFromServer(this, myRoom, roomList);
             }
         }
 

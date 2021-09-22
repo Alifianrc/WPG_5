@@ -59,6 +59,8 @@ public class Client : MonoBehaviour
         {
             Debug.Log("Client connecting error : " + e.Message);
 
+            isConnected = false;
+
             // Try connecting again and again
             StartCoroutine(TryConnecting());
         }
@@ -67,12 +69,12 @@ public class Client : MonoBehaviour
     // Try connecting to server
     private IEnumerator TryConnecting()
     {
-        // Wait 2 second and try agaian
-        yield return new WaitForSeconds(2);
-
         int count = 0;
         while (!client.Connected)
         {
+            // Wait 2 second and try agaian
+            yield return new WaitForSeconds(2);
+
             count++;
             try
             {
@@ -98,17 +100,17 @@ public class Client : MonoBehaviour
                 BinaryFormatter formatter = new BinaryFormatter();
                 RecieveMassage(formatter.Deserialize(networkStream) as string);
             }
-        }
 
-        // Checking connection
-        if(checkCountDown > 0)
-        {
-            checkCountDown -= Time.deltaTime;
-            isConnected = true;
-        }
-        else
-        {
-            isConnected = false;
+            // Checking connection
+            if (checkCountDown > 0)
+            {
+                checkCountDown -= Time.deltaTime;
+                isConnected = true;
+            }
+            else
+            {
+                isConnected = false;
+            }
         }
     }
 

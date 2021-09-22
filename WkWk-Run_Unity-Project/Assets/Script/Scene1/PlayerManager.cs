@@ -1,20 +1,28 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerManager : MonoBehaviour
 {
+    // Player name
     public string playerName;
 
+    // Player default speed
     private float playerDefaultSpeed = 3f;
     [HideInInspector] public float playerSpeed { get; set; }
 
+    // Position in arena (0 - 4)
     public int rowPos { get; set; }
 
+    // Main control
     private GameManager manager;
     private Client network;
 
+    // UI 
+    private Slider mySlider;
     private Transform finishPoint;
+    private Vector2 startPos;
 
     // Swipe control
     private Vector2 startTouchPos;
@@ -24,6 +32,7 @@ public class PlayerManager : MonoBehaviour
     private bool touchIsOn;
     private bool rowChanged;
 
+    // Swipe control range
     private float swipeRange = 50;
     private float tabRange = 10;
 
@@ -38,6 +47,10 @@ public class PlayerManager : MonoBehaviour
         if (playerName == network.MyName)
         {
             FindObjectOfType<CameraFollow>().playerPos = gameObject.transform;
+            mySlider = manager.PlayerSlider;
+            mySlider.value = 0;
+            startPos = new Vector2(transform.position.x, transform.position.y);
+            finishPoint = manager.FinishPoint;
         }
 
         // Set player speed
@@ -63,10 +76,14 @@ public class PlayerManager : MonoBehaviour
                 MovePositionRow();
             }
 
+            // If this player is mine
             if (playerName == network.MyName)
             {
                 // Detect swipe screen
                 SwipeControl();
+
+                // UI
+                mySlider.value = (transform.position.y - startPos.y) / (finishPoint.transform.position.y - startPos.y);
 
                 // Check if finish
                 if (transform.position.y > finishPoint.position.y)

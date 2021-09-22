@@ -610,8 +610,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -3.8000183, y: 0}
-  m_SizeDelta: {x: 56.270874, y: 96}
+  m_AnchoredPosition: {x: -1.7999878, y: -2.3}
+  m_SizeDelta: {x: 87.23517, y: 96}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &530407289
 MonoBehaviour:
@@ -1335,7 +1335,7 @@ GameObject:
   - component: {fileID: 1480561816}
   - component: {fileID: 1480561817}
   m_Layer: 5
-  m_Name: Slider
+  m_Name: Player Slider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1522,8 +1522,8 @@ MonoBehaviour:
   menuPanel: {fileID: 1241583156}
   startPanel: {fileID: 801178862}
   waitingPlayerPanel: {fileID: 1885622331}
-  finishPanel: {fileID: 0}
-  losePanel: {fileID: 0}
+  finishPanel: {fileID: 346641904}
+  losePanel: {fileID: 412574774}
   playerPrefab: {fileID: 3738814365550734074, guid: dd885aae7960dbd41b001d92c5ff7af3,
     type: 3}
   platformSpawnPoint: {fileID: 1990641263}
@@ -1542,6 +1542,7 @@ MonoBehaviour:
   - {fileID: 1259883846}
   - {fileID: 1874792431}
   FinishPoint: {fileID: 76567093}
+  PlayerSlider: {fileID: 1480561817}
 --- !u!4 &1493983292
 Transform:
   m_ObjectHideFlags: 0

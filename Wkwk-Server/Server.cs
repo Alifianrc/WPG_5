@@ -129,21 +129,49 @@ namespace Wkwk_Server
             {
                 if (theList[i].tcp == player.tcp)
                 {
+                    Console.WriteLine("Server : Player " + player.playerName + " removed from list");
+
                     theList.Remove(theList[i]);
                     player.tcp.Close();
                     player = null;
+
+                    return;
                 }
             }
         }
-        public static void DisconnectFromServer(Player player, Room theRoom)
+        public static void DisconnectFromServer(Player player, Room theRoom, List<Room> roomList)
         {
             for (int i = 0; i < theRoom.playerList.Count; i++)
             {
                 if (theRoom.playerList[i].tcp == player.tcp)
                 {
+                    Console.WriteLine("Server : Player " + player.playerName + " removed from room " + theRoom.roomName);
+
                     theRoom.playerList.Remove(theRoom.playerList[i]);
                     player.tcp.Close();
                     player = null;
+
+                    break;
+                }
+            }
+
+            if(theRoom.playerList.Count <= 0)
+            {
+                DestroyRoom(theRoom, roomList);
+            }
+        }
+        public static void DestroyRoom(Room room, List<Room> roomList)
+        {
+            for (int i = 0; i < roomList.Count; i++)
+            {
+                if(roomList[i].roomName == room.roomName)
+                {
+                    Console.WriteLine("Server : Room " + room.roomName + " destroyed");
+
+                    roomList.Remove(room);
+                    room = null;
+
+                    return;
                 }
             }
         }
