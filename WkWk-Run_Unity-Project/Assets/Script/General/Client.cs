@@ -10,7 +10,7 @@ public class Client : MonoBehaviour
 {
     private TcpClient client;
     private NetworkStream networkStream;
-    private int port = 1313;
+    private int port = 3002;
     public IPAddress ipAd = IPAddress.Parse("127.0.0.1");
     // 182.253.90.115
     // 127.0.0.1
@@ -78,7 +78,9 @@ public class Client : MonoBehaviour
             count++;
             try
             {
-                client.Connect(IPAddress.Loopback, port);
+                // http://45.130.229.104:3002/
+                // 192.168.66.92  45.130.229.104
+                client.Connect("45.130.229.104", port);
                 networkStream = client.GetStream();
 
                 isConnected = true;
@@ -192,6 +194,8 @@ public class Client : MonoBehaviour
                     break;
             }
         }
+
+        Debug.Log(massage);
     }
 
     public void SendMassageClient(string target, string massage)

@@ -8,7 +8,7 @@ namespace Wkwk_Server
         static void Main()
         {
             // Make the server (server is auto start)
-            Server server = new Server(1313);
+            Server server = new Server(3002);
             server.StartListening();
         }
     }
