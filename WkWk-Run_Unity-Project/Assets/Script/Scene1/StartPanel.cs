@@ -29,7 +29,7 @@ public class StartPanel : MonoBehaviour
         manager = FindObjectOfType<GameManager>();
         network = FindObjectOfType<Client>();
 
-        startManualButton.SetActive(false);
+        //startManualButton.SetActive(false);
 
         StartCoroutine(CheckRoom());
     }
@@ -65,6 +65,7 @@ public class StartPanel : MonoBehaviour
     // For manually start the game
     public void StartGameServer()
     {
+        // Send massage to all player that the game is started
         network.SendMassageClient("All", "StartGame");
     }
 
