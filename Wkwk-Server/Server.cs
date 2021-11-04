@@ -17,7 +17,7 @@ namespace Wkwk_Server
         private List<Room> roomList;
 
         // The port
-        public int port;
+        public int port = 3002;
 
         // Server listener
         private TcpListener serverListener;
@@ -26,14 +26,12 @@ namespace Wkwk_Server
         public bool serverIsOnline;
 
         // Constructor / Start method ----------------------------------------------------------------
-        public Server(int port)
+        public Server()
         {
             // Initialization
             onlineList = new List<Player>();
             lobbyList = new List<Player>();
             roomList = new List<Room>();
-            this.port = port;
-
 
             // Try start the server
             try

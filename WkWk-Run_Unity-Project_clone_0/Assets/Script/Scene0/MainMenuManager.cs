@@ -17,6 +17,14 @@ public class MainMenuManager : MonoBehaviour
     // Network manager
     private Client network;
 
+    // UI in Main Panel
+    [SerializeField] private Image mainMenuCharImage;
+    [SerializeField] private Text coinText;
+    [SerializeField] public Text nameText;
+
+    // Sprite list
+    [SerializeField] public Sprite[] characterSprite;
+
     void Start()
     {
         network = FindObjectOfType<Client>();
@@ -26,7 +34,7 @@ public class MainMenuManager : MonoBehaviour
 
         // Setting Panels
         connectingPanel.SetActive(true);
-        if(theData.UserName == "null")
+        if(theData.UserName == "")
         {
             selectNamePanel.SetActive(true);
         }
@@ -34,6 +42,14 @@ public class MainMenuManager : MonoBehaviour
         {
             selectNamePanel.SetActive(false);
         }
+
+        // Set UI
+        mainMenuCharImage.sprite = characterSprite[theData.selectedChar];
+        coinText.text = theData.Coin.ToString("n0");
+       
+        nameText.text = theData.UserName;
+
+        // Audio
 
         // Checking connection regulary
         StartCoroutine(CheckConnection());
@@ -74,8 +90,20 @@ public class MainMenuManager : MonoBehaviour
         }
     }
 
-    void Update()
+
+    // UI
+    public void ChangeSelectedCharacter(int value)
     {
-        
+        mainMenuCharImage.sprite = characterSprite[value];
+    }
+    public void ChangeCoinValue(int value)
+    {
+        coinText.text = value.ToString("n0");
+    }
+
+    // Exit Games
+    public void ExitGame()
+    {
+        Application.Quit();
     }
 }

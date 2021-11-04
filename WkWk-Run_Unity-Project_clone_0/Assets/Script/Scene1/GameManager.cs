@@ -27,6 +27,9 @@ public class GameManager : MonoBehaviour
     // Platform Spawn Point
     [SerializeField] private Transform platformSpawnPoint;
 
+    // Main platform spawn position
+    private Vector3 platformSpawnPos;
+
     // Platform
     [SerializeField] private GameObject platformGround; // ID = 0
     [SerializeField] private GameObject platformWater; // ID = 1
@@ -58,6 +61,9 @@ public class GameManager : MonoBehaviour
         // Panels
         startPanel.SetActive(true);
         waitingPlayerPanel.SetActive(true);
+
+        // Platform start pos
+        platformSpawnPos = new Vector3(0, 0, 10);
 
         // Set screen size
         Vector2 minPosCamera = Camera.main.ScreenToWorldPoint(new Vector2(0, 0));
@@ -108,15 +114,18 @@ public class GameManager : MonoBehaviour
     {
         while(platformSpawnPoint.position.y > rowPos[0].position.y)
         {
+            // Create platform
+            if (platformSpawnPos.y < platformSpawnPoint.position.y)
+            {
+                Instantiate(platformGround, platformSpawnPos, Quaternion.identity);
+                platformSpawnPos = new Vector3(platformSpawnPos.x, platformSpawnPos.y + 10, platformSpawnPos.z);
+            }
+
             for (int i = 0; i < rowPos.Length; i++)
             {
-                // Instantiate new platform
-                GameObject temp = Instantiate(platformGround, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 10), Quaternion.identity);
-                temp.transform.localScale = new Vector3(scaleFix, scaleFix, scaleFix);
-
                 // relocate row position
                 rowPos[i].position = new Vector3(rowPos[i].position.x, rowPos[i].position.y + rowDist, rowPos[i].position.z);
-            } 
+            }
         }
     }
 
@@ -129,35 +138,31 @@ public class GameManager : MonoBehaviour
     {
         while (GameIsStarted)
         {
-            // Check spawn position
-            if (platformSpawnPoint.position.y > rowPos[0].position.y)
+            // Check spawn position and if this is master
+            if (platformSpawnPoint.position.y > rowPos[0].position.y && network.isMaster)
             {
                 // Preparing massage data
                 string[] massage = new string[(int)rowCount + 1];
                 massage[0] = "SpawnPlatform";
-                // Randomize
+                
+                // Spawn here
                 int[] temp = new int[(int)rowCount];
                 for (int i = 0; i < rowCount; i++)
                 {
-                    //temp[i] = new int();
-                    int platRand = Random.Range(1, 101);
-                    if (platRand < randomPlatfromValue)
-                    {
-                        temp[i] = 0;
-                        massage[i + 1] = temp[i].ToString();
-                    }
-                    else
-                    {
-                        int trapRand = Random.Range(2, 4);
-                        temp[i] = trapRand;
-                        massage[i + 1] = temp[i].ToString();
-                    }
+                    massage[i + 1] = "0";
                 }
 
                 // Send to other client if host
                 network.SendMassageClient("All", massage);
                 SpawnPlatformGames(temp);
             }
+
+            // Alwasy spawn platform ground
+            if (platformSpawnPos.y < platformSpawnPoint.position.y)
+            {
+                SpawnPlatformGround();
+            }
+
             yield return new WaitForSeconds(.7f);
         }
     }
@@ -167,13 +172,8 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < rowPos.Length; i++)
         {
             // Instantiate new platform
-            GameObject temp;
-            if (platform[i] == 0)
-            {
-                // Spawn ground
-                temp = Instantiate(platformGround, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 10), Quaternion.identity);
-            }
-            else if(platform[i] == 1)
+            GameObject temp = null;
+            if (platform[i] == 1)
             {
                 // Spawn water
                 temp = Instantiate(platformWater, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 10), Quaternion.identity);
@@ -188,16 +188,20 @@ public class GameManager : MonoBehaviour
                 // Spawn lava
                 temp = Instantiate(trapLava, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 10), Quaternion.identity);
             }
-            else
-            {
-                // For default just spawn ground
-                temp = Instantiate(platformGround, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 10), Quaternion.identity);
-            }
 
-            // Re-scale
-            temp.transform.localScale = new Vector3(scaleFix, scaleFix, scaleFix);
+            if(temp != null)
+            {
+                // Re-scale
+                temp.transform.localScale = new Vector3(scaleFix, scaleFix, scaleFix);
+            }
+           
             // relocate row position
             rowPos[i].position = new Vector3(rowPos[i].position.x, rowPos[i].position.y + rowDist, rowPos[i].position.z);
         }
+    }
+    public void SpawnPlatformGround()
+    {
+        Instantiate(platformGround, platformSpawnPos, Quaternion.identity);
+        platformSpawnPos = new Vector3(platformSpawnPos.x, platformSpawnPos.y + 10, platformSpawnPos.z);
     }
 }
