@@ -15,7 +15,7 @@ public class Client : MonoBehaviour
     // 182.253.90.115
 
     // Name 
-    [HideInInspector] public SaveData TheData;
+    [HideInInspector] public SaveData TheData { get; private set; }
     [SerializeField] public string MyName;
 
     public bool isConnected { get; private set; }
@@ -32,6 +32,11 @@ public class Client : MonoBehaviour
     private List<PlayerManager> playerList;
     private PlayerManager myPlayer;
 
+    private void Awake()
+    {
+        TheData = SaveGame.LoadData();
+        MyName = TheData.UserName;
+    }
     void Start()
     {
         // Never destroy this object
@@ -40,9 +45,6 @@ public class Client : MonoBehaviour
         client = new TcpClient();
 
         checkCountDown = CheckTime;
-
-        TheData = SaveGame.LoadData();
-        MyName = TheData.UserName;
 
         playerList = new List<PlayerManager>();
 
