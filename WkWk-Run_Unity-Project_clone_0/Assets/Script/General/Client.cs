@@ -16,7 +16,8 @@ public class Client : MonoBehaviour
 
     // Name 
     [HideInInspector] public SaveData TheData { get; private set; }
-    [SerializeField] public string MyName;
+    public string MyName { get; set; }
+    public string roomName { get; set; }
 
     public bool isConnected { get; private set; }
 
@@ -131,10 +132,6 @@ public class Client : MonoBehaviour
                     // Connection check success
                     checkCountDown = CheckTime;
                     break;
-                case "JoinedLobby":
-                    // If joined in lobby
-                    FindObjectOfType<MainMenuManager>().OnJoinedLobby();
-                    break;
                 case "CreatedRoom":
                     // If joined in room
                     FindObjectOfType<MainMenuManager>().OnJoinedRoom();
@@ -144,6 +141,7 @@ public class Client : MonoBehaviour
                 case "JoinedRoom":
                     // If joined in room
                     FindObjectOfType<MainMenuManager>().OnJoinedRoom();
+                    roomName = data[2];
                     break;
                 case "RoomNotFound":
                     FindObjectOfType<JoinRoomPanel>().RoomNotFound();

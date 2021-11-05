@@ -15,14 +15,11 @@ namespace Wkwk_Server
 
         // List of online player (not in lobby or room)
         private List<Player> onlineList;
-        // List of player want to play / queue
-        private List<Player> lobbyList;
         // List of room of the Games
         private List<Room> roomList;
 
         // Player position in server List
-        // 0 = onlineList
-        // 1 = lobbyList
+        // 1 = onlineList
         // 2 = roomList
         public int listPosition;
 
@@ -34,27 +31,24 @@ namespace Wkwk_Server
         private bool isMaster;
         // Is Online
         private bool isOnline;
-        private bool needCheck;
 
        
 
         // Constructor needed
-        public Player(TcpClient tcp, List<Player> onlineList, List<Player> lobbyList, List<Room> roomList)
+        public Player(TcpClient tcp, List<Player> onlineList, List<Room> roomList)
         {
             this.tcp = tcp;
             this.onlineList = onlineList;
-            this.lobbyList = lobbyList;
             this.roomList = roomList;
 
             stream = tcp.GetStream();
             isOnline = true;
-            needCheck = true;
         }
 
         // Check player connection
         private void CheckConnection()
         {
-            while (isOnline && needCheck)
+            while (isOnline)
             {
                 Thread.Sleep(5000);
                 SendMassage("Server", playerName, "SYNA");
@@ -80,6 +74,7 @@ namespace Wkwk_Server
                     string data = formatter.Deserialize(stream) as string;
                     string[] info = data.Split("|");
 
+                    // Send data to all
                     if (info[0] == "All")
                     {
                         switch (info[1])
@@ -103,6 +98,7 @@ namespace Wkwk_Server
                                 break;
                         }
                     }
+                    // Send data to all excep sender
                     else if (info[0] == "AllES")
                     {
                         switch (info[1])
@@ -116,12 +112,14 @@ namespace Wkwk_Server
                                 break;
                         }
                     }
+                    // Send data to server (this)
                     else if (info[0] == "Server")
                     {
                         switch (info[1])
                         {
-                            case "JoinLobby":
-                                JoinLobby();
+                            case "Play":
+                                // Start matchmaking (actually just finding room)
+                                MatchMaking();
                                 break;
                             case "CreateRoom":
                                 if (info.Length > 4)
@@ -139,9 +137,6 @@ namespace Wkwk_Server
                             case "SpawnPlayer":
                                 SpawnPlayer();
                                 break;
-                            case "ExitLobby":
-                                ExitLobby();
-                                break;
                             case "ExitRoom":
                                 ExitRoom();
                                 break;
@@ -153,6 +148,7 @@ namespace Wkwk_Server
                                 break;
                         }
                     }
+                    // Send data to specific player
                     else
                     {
                         for(int i = 0; i < myRoom.playerList.Count; i++)
@@ -178,7 +174,7 @@ namespace Wkwk_Server
             }
         }
 
-        // Send massage
+        // Send massage ---------------------------------------------------------------------------------
         private void SendMassage(string fromWho, string target, string massage)
         {
             string[] data = new string[1];
@@ -278,36 +274,38 @@ namespace Wkwk_Server
             }
         }
 
-        // Room and Lobby --------------------------------------------------------------------------
-        // Join lobby method
-        private void JoinLobby()
+        // Room ------------------------------------------------------------------------------------------
+        // Matchmaking
+        public void MatchMaking()
         {
-            foreach (Player a in onlineList)
+            // Check if there is room in list
+            if(roomList.Count > 0)
             {
-                if (a.tcp == tcp)
+                // Check if there is room can join
+                for(int i = 0; i < roomList.Count; i++)
                 {
-                    // Remove from online list
-                    onlineList.Remove(a);
+                    if (roomList[i].canJoin)
+                    {
+                        onlineList.Remove(this);
+                        roomList[i].playerList.Add(this);
+                        listPosition = 2;
+                        roomList[i].CheckRoom();
+                        myRoom = roomList[i];
 
-                    // Add to Lobby list
-                    lobbyList.Add(a);
-                    listPosition = 1;
+                        // Send massage to client
+                        SendMassage("Server", playerName, "JoinedRoom|" + myRoom.roomName);
 
-                    needCheck = true;
+                        // Print massage
+                        Console.WriteLine(playerName + " : Joined room " + myRoom.roomName);
 
-                    // Send massage to client
-                    SendMassage("Server", playerName, "JoinedLobby");
-
-                    // Print massage
-                    Console.WriteLine(playerName + " : Join to Lobby");
-
-                    // Start matchmaking
-                    Server.Matchmaking(this, lobbyList, roomList);
-
-                    return;
+                        return;
+                    }
                 }
             }
-        }
+
+            // Just make new room if there is no room can be joined
+            CreateRoom();
+        }        
         // Create room auto
         public void CreateRoom()
         {
@@ -343,42 +341,11 @@ namespace Wkwk_Server
                         isMaster = true;
                         roomList.Add(myRoom);
 
-                        needCheck = false;
-
                         // Send massage to client
                         SendMassage("Server", playerName, "CreatedRoom");
 
                         // Print massage in server
                         Console.WriteLine(playerName + " : Joined room " + myRoom.roomName);
-
-                        return;
-                    }
-                }
-            }
-            else if(listPosition == 1)
-            {
-                // Moving player from lobby to room
-                foreach (Player a in lobbyList)
-                {
-                    if (a.tcp == tcp)
-                    {
-                        // Remove from lobby list
-                        lobbyList.Remove(a);
-
-                        // Add to room list
-                        temp.playerList.Add(a);
-                        listPosition = 2;
-
-                        // Save room
-                        myRoom = temp;
-                        isMaster = true;
-                        roomList.Add(myRoom);
-
-                        // Send massage to client
-                        SendMassage("Server", playerName, "CreatedRoom");
-
-                        // Print massage in server
-                        Console.WriteLine(playerName + " : Created room " + myRoom.roomName);
 
                         return;
                     }
@@ -398,10 +365,8 @@ namespace Wkwk_Server
                     a.CheckRoom();
                     myRoom = a;
 
-                    needCheck = false;
-
                     // Send massage to client
-                    SendMassage("Server", playerName, "JoinedRoom");
+                    SendMassage("Server", playerName, "JoinedRoom|" + myRoom.roomName);
 
                     // Print massage
                     Console.WriteLine(playerName + " : Joined room " + myRoom.roomName);
@@ -412,27 +377,6 @@ namespace Wkwk_Server
 
             // If not join room
             SendMassage("Server", playerName, "RoomNotFound");
-        }
-        // Exit from lobby
-        private void ExitLobby()
-        {
-            foreach (Player a in lobbyList)
-            {
-                if (a.tcp == tcp)
-                {
-                    // Remove from online list
-                    lobbyList.Remove(a);
-
-                    // Add to Lobby list
-                    onlineList.Add(a);
-                    listPosition = 0;
-
-                    needCheck = true;
-                }
-            }
-
-            // Print massage
-            Console.WriteLine(playerName + " : Exit from Lobby");
         }
         // Exit from room
         public void ExitRoom()
@@ -450,8 +394,6 @@ namespace Wkwk_Server
 
                     myRoom.CheckRoom();
                     myRoom = null;
-
-                    needCheck = true;
 
                     // Print massage
                     Console.WriteLine(playerName + " : Exit from room " + myRoom.roomName);
@@ -491,20 +433,16 @@ namespace Wkwk_Server
             // Print massage
             Console.WriteLine(playerName + " : Disconnected from server");
             isOnline = false;
-            if (listPosition == 0)
+            if (listPosition == 1)
             {
                 Server.DisconnectFromServer(this, onlineList);
-            }
-            else if (listPosition == 1)
-            {
-                Server.DisconnectFromServer(this, lobbyList);
             }
             else if (listPosition == 2)
             {
                 // If this is master, set other player to master
                 if (isMaster)
                 {
-                    for(int i = 0;i < myRoom.playerList.Count; i++)
+                    for(int i = 0; i < myRoom.playerList.Count; i++)
                     {
                         if(myRoom.playerList[i].playerName != playerName)
                         {
@@ -526,8 +464,8 @@ namespace Wkwk_Server
             Console.WriteLine(playerName + " : Become a master of room " + myRoom.roomName);
         }
 
-        // Custom method to convert sting to bool
-        // 0 = false ; 1 = true
+        // Custom method to convert sting to bool -----------------------------------------------------------------
+        // 0 = false ; 1,2,3...n = true
         private bool StringToBool(string a)
         {
             if (a == "0")

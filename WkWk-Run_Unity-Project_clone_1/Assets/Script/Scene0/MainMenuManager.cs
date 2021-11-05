@@ -59,7 +59,7 @@ public class MainMenuManager : MonoBehaviour
     public void PlayButton()
     {
         // Join Lobby
-        network.SendMassageClient("Server", "JoinLobby");
+        network.SendMassageClient("Server", "Play");
         matchmakingPanel.SetActive(true);
     }
     public void OnJoinedLobby()

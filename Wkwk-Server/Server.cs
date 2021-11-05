@@ -11,8 +11,6 @@ namespace Wkwk_Server
     {
         // List of online player (not in lobby or room)
         private List<Player> onlineList;
-        // List of player want to play / queue
-        private List<Player> lobbyList;
         // List of room of the Games
         private List<Room> roomList;
 
@@ -30,7 +28,6 @@ namespace Wkwk_Server
         {
             // Initialization
             onlineList = new List<Player>();
-            lobbyList = new List<Player>();
             roomList = new List<Room>();
 
             // Try start the server
@@ -65,7 +62,7 @@ namespace Wkwk_Server
                 TcpClient client = serverListener.AcceptTcpClient();
 
                 // Ask for name
-                Player player = new Player(client, onlineList, lobbyList, roomList);
+                Player player = new Player(client, onlineList, roomList);
                 NetworkStream tempStream = player.tcp.GetStream();
                 string massage = "Server|WHORU";
 
