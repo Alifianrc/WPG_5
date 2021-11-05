@@ -14,12 +14,14 @@ public class Client : MonoBehaviour
     public IPAddress ipAd = IPAddress.Parse("127.0.0.1");
     // 182.253.90.115
 
-    // Name 
+    // Player and Room name
     [HideInInspector] public SaveData TheData { get; private set; }
     public string MyName { get; set; }
     public string roomName { get; set; }
 
+    // Connection status
     public bool isConnected { get; private set; }
+    private bool isReady = false;
 
     // Check connection timer
     float CheckTime = 8;
@@ -28,10 +30,13 @@ public class Client : MonoBehaviour
     // Master of room
     [SerializeField] public bool isMaster;
 
-    // Player
+    // All players (in room)
     [SerializeField] private GameObject playerPrefab;
     private List<PlayerManager> playerList;
     private PlayerManager myPlayer;
+
+    RsaEncryption rsaEncryption;
+    AesEncryption aesEncryption;
 
     private void Awake()
     {
@@ -44,30 +49,28 @@ public class Client : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         client = new TcpClient();
-
         checkCountDown = CheckTime;
-
         playerList = new List<PlayerManager>();
+
+        rsaEncryption = new RsaEncryption();
+        aesEncryption = new AesEncryption();
 
         try
         {
             client.Connect(ipAd, port);
             networkStream = client.GetStream();
+            PrepareEncryption();
 
-            isConnected = true;
             Debug.Log("Connected to server");
         }
         catch(Exception e)
         {
             Debug.Log("Client connecting error : " + e.Message);
 
-            isConnected = false;
-
             // Try connecting again and again
             StartCoroutine(TryConnecting());
         }
     }
-
     // Try connecting to server
     private IEnumerator TryConnecting()
     {
@@ -82,8 +85,8 @@ public class Client : MonoBehaviour
             {
                 client.Connect(ipAd, port);
                 networkStream = client.GetStream();
+                PrepareEncryption();
 
-                isConnected = true;
                 Debug.Log("Connected to server");
             }
             catch (Exception e)
@@ -95,7 +98,7 @@ public class Client : MonoBehaviour
 
     void Update()
     {
-        if (client.Connected)
+        if (client.Connected && isReady)
         {
             if (networkStream.DataAvailable)
             {
@@ -116,10 +119,35 @@ public class Client : MonoBehaviour
         }
     }
 
+    // Preparation ---------------------------------------------------------------------------------------------
+    private void PrepareEncryption()
+    {
+        // Send client public key to server
+        BinaryFormatter formatter = new BinaryFormatter();
+        string key = rsaEncryption.ConvertKeyToString(rsaEncryption.clientPublicKey);
+        string encrypKey = rsaEncryption.Encrypt(key, rsaEncryption.serverPublicKey);
+        formatter.Serialize(networkStream, encrypKey);
+
+        // Wait for new key
+        string answer = formatter.Deserialize(networkStream) as string;
+        string aesKey = rsaEncryption.Decrypt(answer, rsaEncryption.clientPrivateKey);
+
+        // Save the new key
+        aesEncryption.SetKey(aesEncryption.ConvertStringToKey(aesKey));
+
+        // Ready to communicate
+        isReady = true;
+        isConnected = true;
+    }
+
+    // Receiving Massage ---------------------------------------------------------------------------------------
     private void RecieveMassage(string massage)
     {
+        // Decrypt
+        string decryptMassage = aesEncryption.Decrypt(massage); 
+
         // recieve format : Sender|Data1|Data2|...
-        string[] data = massage.Split('|');
+        string[] data = decryptMassage.Split('|');
         if(data[0] == "Server")
         {
             switch (data[1]) 
@@ -154,7 +182,7 @@ public class Client : MonoBehaviour
                     isMaster = true;
                     break;
                 default:
-                    Debug.Log("Unreconized massage : " + massage);
+                    Debug.Log("Unreconized massage : " + decryptMassage);
                     break;
             }
         }
@@ -187,12 +215,16 @@ public class Client : MonoBehaviour
                     ChangePlayerRow(data[2], int.Parse(data[3]));
                     break;
                 default:
-                    Debug.Log("Unreconized massage : " + massage);
+                    Debug.Log("Unreconized massage : " + decryptMassage);
                     break;
             }
         }
+
+        // Debugging
+        Debug.Log(decryptMassage);
     }
 
+    // Sending Massage -----------------------------------------------------------------------------------------
     public void SendMassageClient(string target, string massage)
     {
         string[] data = new string[1];
@@ -210,9 +242,10 @@ public class Client : MonoBehaviour
         }
 
         BinaryFormatter formatter = new BinaryFormatter();
-        formatter.Serialize(networkStream, data);
+        formatter.Serialize(networkStream, aesEncryption.Encrypt(data));
     }
 
+    // General Method ------------------------------------------------------------------------------------------
     private void SpawnPlayer(string name, int row, bool needFeedBack)
     {
         PlayerManager tempPlay = Instantiate(playerPrefab).GetComponent<PlayerManager>();
@@ -232,7 +265,6 @@ public class Client : MonoBehaviour
             SendMassageClient(name, mass);
         }
     }
-
     public void StartSyncPlayer()
     {
         foreach(PlayerManager a in playerList)
@@ -243,12 +275,10 @@ public class Client : MonoBehaviour
             }
         }
     }
-
     public int PlayerCountInRoom()
     {
         return playerList.Count;
     }
-
     public void ChangePlayerRow(string thePlayerName, int row)
     {
         foreach(PlayerManager a in playerList)
@@ -260,7 +290,7 @@ public class Client : MonoBehaviour
         }
     }
 
-    // Custom method to convert sting to bool
+    // Custom method to convert sting to bool ----------------------------------------------------------------------------
     // 0 = false ; 1 = true
     private bool StringToBool(string a)
     {

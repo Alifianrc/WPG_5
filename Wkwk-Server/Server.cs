@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Net;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using System.IO;
 
 namespace Wkwk_Server
 {
@@ -61,28 +61,8 @@ namespace Wkwk_Server
                 // Accept Client
                 TcpClient client = serverListener.AcceptTcpClient();
 
-                // Ask for name
-                Player player = new Player(client, onlineList, roomList);
-                NetworkStream tempStream = player.tcp.GetStream();
-                string massage = "Server|WHORU";
-
-                BinaryFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(tempStream, massage);
-
-                // Waiting for answer
-                string answer = formatter.Deserialize(tempStream) as string;
-                string[] info = answer.Split("|");
-
-                // Add to list
-                player.playerName = info[1];
-                onlineList.Add(player);
-                player.listPosition = 0;
-
-                // Start player
-                player.StartReceiving();
-
-                // Print massage in console
-                Console.WriteLine("Server : Client " + player.playerName + " is online");
+                // Make a new class to handle client
+                Player player = new Player(client, onlineList, roomList);               
             }
         }
 

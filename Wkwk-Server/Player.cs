@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 namespace Wkwk_Server
 {
@@ -32,7 +33,12 @@ namespace Wkwk_Server
         // Is Online
         private bool isOnline;
 
-       
+        // Encryption
+        RsaEncryption rsaEncryption;
+        AesEncryption aesEncryption;
+
+        // Private key
+        private string ServerPrivateKey;
 
         // Constructor needed
         public Player(TcpClient tcp, List<Player> onlineList, List<Room> roomList)
@@ -43,9 +49,65 @@ namespace Wkwk_Server
 
             stream = tcp.GetStream();
             isOnline = true;
+
+            aesEncryption = new AesEncryption();
+
+            // Load private key
+            ServerPrivateKey = File.ReadAllText(Directory.GetCurrentDirectory() + "\\Private-Key.txt");
+            rsaEncryption = new RsaEncryption(ServerPrivateKey);
+
+            // Preparation
+            PrepareEncryption();
+            // Ask for name and start listening
+            AskPlayerName();
         }
 
-        // Check player connection
+        // Preparation Method -------------------------------------------------------------------------
+        private void PrepareEncryption()
+        {
+            // Wait to receive client public key
+            BinaryFormatter formatter = new BinaryFormatter();
+            string answer = formatter.Deserialize(stream) as string;
+
+            // Decrypt it
+            string key = rsaEncryption.Decrypt(answer, rsaEncryption.serverPrivateKey);
+
+            // Save client public key
+            rsaEncryption.SetClientPublicKey(key);
+
+            // Create new symmetric key
+            aesEncryption.GenerateNewKey();
+
+            // Send it to client
+            string encryptKey = rsaEncryption.Encrypt(aesEncryption.ConvertKeyToString(aesEncryption.aesKey), rsaEncryption.clientPublicKey);
+            formatter.Serialize(stream, encryptKey);
+        }
+        private void AskPlayerName()
+        {
+            // Make the massage
+            string massage = aesEncryption.Encrypt("Server|WHORU");
+            
+            // Send it
+            BinaryFormatter formatter = new BinaryFormatter();
+            formatter.Serialize(stream, massage);
+
+            // Waiting for answer
+            string answer = aesEncryption.Decrypt(formatter.Deserialize(stream) as string);
+            string[] info = answer.Split("|");
+
+            // Add this player to list
+            playerName = info[1];
+            onlineList.Add(this);
+            listPosition = 1;
+
+            // Start listenign player
+            StartReceiving();
+
+            // Print massage in console
+            Console.WriteLine("Server : Client " + playerName + " is online");
+        }
+
+        // Check player connection ---------------------------------------------------------------------
         private void CheckConnection()
         {
             while (isOnline)
@@ -55,7 +117,7 @@ namespace Wkwk_Server
             }
         }
 
-        // Start receiving massage from this player
+        // Start receiving massage from this player ----------------------------------------------------
         public void StartReceiving()
         {
             Thread recieveThread = new Thread(RecievedMassage);
@@ -71,7 +133,7 @@ namespace Wkwk_Server
                 {
                     // Format received : ToWho|Data1|Data2|... 
                     BinaryFormatter formatter = new BinaryFormatter();
-                    string data = formatter.Deserialize(stream) as string;
+                    string data = aesEncryption.Decrypt(formatter.Deserialize(stream) as string);
                     string[] info = data.Split("|");
 
                     // Send data to all
@@ -196,7 +258,7 @@ namespace Wkwk_Server
                         data += "|" + massage[i];
                     }
 
-                    SendSerializationDataHandler(stream, data);
+                    SendSerializationDataHandler(stream, aesEncryption.Encrypt(data));
                 }
 
                 // Send to All Player in room
@@ -213,7 +275,7 @@ namespace Wkwk_Server
                     // Send to all
                     for(int i = 0; i < myRoom.playerList.Count; i++)
                     {
-                        SendSerializationDataHandler(myRoom.playerList[i].stream, data);
+                        SendSerializationDataHandler(myRoom.playerList[i].stream, aesEncryption.Encrypt(data));
                     }
                 }
 
@@ -232,7 +294,7 @@ namespace Wkwk_Server
                                 data += "|" + massage[j];
                             }
                             // Send massage
-                            SendSerializationDataHandler(myRoom.playerList[i].stream, data);
+                            SendSerializationDataHandler(myRoom.playerList[i].stream, aesEncryption.Encrypt(data));
                         }
                     }
                 }
@@ -253,7 +315,7 @@ namespace Wkwk_Server
                             }
 
                             // Send massage
-                            SendSerializationDataHandler(myRoom.playerList[i].stream, data);
+                            SendSerializationDataHandler(myRoom.playerList[i].stream, aesEncryption.Encrypt(data));
                         }
                     }
                 }
@@ -322,33 +384,30 @@ namespace Wkwk_Server
             temp.playerList = new List<Player>();
             temp.SetCanJoin(true);
 
-            if(listPosition == 0)
+            // Moving player from online to new room
+            foreach (Player a in onlineList)
             {
-                // Moving player from online to room
-                foreach (Player a in onlineList)
+                if (a.tcp == tcp)
                 {
-                    if (a.tcp == tcp)
-                    {
-                        // Remove from online list
-                        onlineList.Remove(a);
+                    // Remove from online list
+                    onlineList.Remove(a);
 
-                        // Add to room list
-                        temp.playerList.Add(a);
-                        listPosition = 2;
+                    // Add to room list
+                    temp.playerList.Add(a);
+                    listPosition = 2;
 
-                        // Save room
-                        myRoom = temp;
-                        isMaster = true;
-                        roomList.Add(myRoom);
+                    // Save room
+                    myRoom = temp;
+                    isMaster = true;
+                    roomList.Add(myRoom);
 
-                        // Send massage to client
-                        SendMassage("Server", playerName, "CreatedRoom");
+                    // Send massage to client
+                    SendMassage("Server", playerName, "CreatedRoom");
 
-                        // Print massage in server
-                        Console.WriteLine(playerName + " : Joined room " + myRoom.roomName);
+                    // Print massage in server
+                    Console.WriteLine(playerName + " : Joined room " + myRoom.roomName);
 
-                        return;
-                    }
+                    return;
                 }
             }
         }
@@ -426,7 +485,6 @@ namespace Wkwk_Server
             // Print massage in server
             Console.WriteLine(playerName + " : Request Spawn Player, Get-" + randPos);
         }
-       
         // Disconnect from server
         private void DisconnectFromServer()
         {
@@ -454,7 +512,6 @@ namespace Wkwk_Server
                 Server.DisconnectFromServer(this, myRoom, roomList);
             }
         }
-
         // Set this player to master
         public void SetToMaster()
         {
