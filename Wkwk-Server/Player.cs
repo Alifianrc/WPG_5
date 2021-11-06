@@ -128,12 +128,12 @@ namespace Wkwk_Server
         // Start receiving massage from this player ----------------------------------------------------
         public void StartReceiving()
         {
-            Thread recieveThread = new Thread(RecievedMassage);
+            Thread recieveThread = new Thread(ReceivedMassage);
             Thread checkConnectionThread = new Thread(CheckConnection);
             recieveThread.Start();
             checkConnectionThread.Start();
         }
-        private void RecievedMassage()
+        private void ReceivedMassage()
         {
             while (isOnline)
             {

@@ -102,7 +102,7 @@ public class Client : MonoBehaviour
             if (networkStream.DataAvailable)
             {
                 BinaryFormatter formatter = new BinaryFormatter();
-                RecieveMassage(formatter.Deserialize(networkStream) as string);
+                ReceiveMassage(formatter.Deserialize(networkStream) as string);
             }
 
             // Checking connection
@@ -140,7 +140,7 @@ public class Client : MonoBehaviour
     }
 
     // Receiving Massage ---------------------------------------------------------------------------------------
-    private void RecieveMassage(string massage)
+    private void ReceiveMassage(string massage)
     {
         // Decrypt
         string decryptMassage = aesEncryption.Decrypt(massage);
@@ -148,7 +148,7 @@ public class Client : MonoBehaviour
         // Debugging
         Debug.Log(decryptMassage);
 
-        // recieve format : Sender|Data1|Data2|...
+        // receive format : Sender|Data1|Data2|...
         string[] data = decryptMassage.Split('|');
         if(data[0] == "Server")
         {
