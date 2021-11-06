@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,8 +10,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject menuPanel;
     [SerializeField] private GameObject startPanel;
     [SerializeField] private GameObject waitingPlayerPanel;
-    [SerializeField] private GameObject finishPanel;
-    [SerializeField] private GameObject losePanel;
+    [SerializeField] private GameObject gameOverPanel;
 
     // Boolean
     public bool GameIsStarted { get; set; }
@@ -22,7 +22,8 @@ public class GameManager : MonoBehaviour
     private float rowDist;
 
     // Player
-    [SerializeField] private GameObject playerPrefab;
+    [SerializeField] public GameObject[] playerPrefab;
+    [HideInInspector] public GameObject[] PlayerList { get; set; }
 
     // Platform Spawn Point
     [SerializeField] private Transform platformSpawnPoint;
@@ -45,9 +46,30 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform[] rowPos;
     [HideInInspector] public float[] rowXPos { get; private set; }
 
+    // Level value
+    public int GameLevel { get; private set; }
+    public int LevelDistance = 80;
+
+    // All Player position
+    [SerializeField] GameObject[] playersOrder;
+
     // Finish Position
     public Transform FinishPoint;
-    public Slider PlayerSlider; 
+    public Slider PlayerSlider;
+    public Image SliderImage;
+    public Sprite[] SliderSpriteList;
+    // UI
+    public Text coinText;
+
+    // Game Over Panel
+    [SerializeField] private Image gameOverPanelSprite;
+    [SerializeField] private Text gameOverPanelTitle;
+    [SerializeField] private Text gameOverPanelCoin;
+    [SerializeField] private Text gameOverPanelPlayerOrder;
+    [SerializeField] public Sprite[] characterSpriteFace;
+
+    // Leveling
+    public int levelDistance { get; private set; }
 
     // Network
     private Client network;
@@ -89,7 +111,9 @@ public class GameManager : MonoBehaviour
         randomPlatfromValue = 95;
 
         // Spawn Player
-        network.SendMassageClient("Server", "SpawnPlayer"); // Need more parameter in future
+        network.SendMassageClient("Server", "SpawnPlayer|" + network.TheData.selectedChar);
+        // Set SLider Image
+        SliderImage.sprite = SliderSpriteList[network.TheData.selectedChar];
 
         // Creating start map
         StartMapSpawn();
@@ -129,7 +153,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Platform spaner
+    // Platform spaner -------------------------------------------------------------------------------------------------
     public void StartSpawnPlatform()
     {
         StartCoroutine(SpawnPlatformGames());
@@ -203,5 +227,143 @@ public class GameManager : MonoBehaviour
     {
         Instantiate(platformGround, platformSpawnPos, Quaternion.identity);
         platformSpawnPos = new Vector3(platformSpawnPos.x, platformSpawnPos.y + 10, platformSpawnPos.z);
+    }
+
+    // Game Level -----------------------------------------------------------------------------------------------------
+    public void IncreaseGameLevel()
+    {
+        GameLevel++;
+        //allTrapRandomValue += 2;
+        //trapSlowRandomValue -= 3;
+        //trapMovingRandomValue += 3;
+    }
+
+    // Player Order
+    // Find all players
+    public void FindPlayers()
+    {
+        PlayerManager[] temps = FindObjectsOfType<PlayerManager>();
+        playersOrder = new GameObject[temps.Length];
+
+        for (int i = 0; i < temps.Length; i++)
+        {
+            playersOrder[i] = temps[i].gameObject;
+        }
+
+        StartCoroutine(PlayerOrder());
+    }
+    // Determine player order
+    private IEnumerator PlayerOrder()
+    {
+        while (!GameIsFinished)
+        {
+            // Sorting algorithm
+            if (playersOrder.Length > 1)
+            {
+                for (int i = 0; i < playersOrder.Length - 1; i++)
+                {
+                    int min = i;
+                    for (var j = i + 1; j < playersOrder.Length; j++)
+                    {
+                        if (playersOrder[min].transform.position.y < playersOrder[j].transform.position.y)
+                        {
+                            min = j;
+                        }
+                    }
+
+                    if (min != i)
+                    {
+                        var temp = playersOrder[min];
+                        playersOrder[min] = playersOrder[i];
+                        playersOrder[i] = temp;
+                        playersOrder[i].GetComponent<PlayerManager>().ChangePlayerOrder(i + 1);
+                    }
+                    else
+                    {
+                        playersOrder[i].GetComponent<PlayerManager>().ChangePlayerOrder(i + 1);
+                    }
+
+                    if (i == playersOrder.Length - 2)
+                    {
+                        playersOrder[i + 1].GetComponent<PlayerManager>().ChangePlayerOrder(i + 2);
+                    }
+                }
+            }
+            else
+            {
+                playersOrder[0].GetComponent<PlayerManager>().ChangePlayerOrder(1);
+            }
+            yield return new WaitForSeconds(.8f);
+        }
+    }
+
+    // Game Over method -----------------------------------------------------------------------------------------------
+    public void GameOver(bool isWin, int order)
+    {
+        StartCoroutine(OpenGameOverPanel(isWin, order));
+    }
+    private IEnumerator OpenGameOverPanel(bool isWin, int order)
+    {
+        GameIsFinished = true;
+        yield return new WaitForSeconds(1.5f);
+        if (isWin)
+        {
+            //audio.Play("Finish");
+        }
+        else
+        {
+            //audio.Play("Lose");
+        }
+
+        Time.timeScale = .3f;
+
+        gameOverPanel.SetActive(true);
+
+        gameOverPanelSprite.sprite = characterSpriteFace[network.TheData.selectedChar];
+
+        gameOverPanelCoin.text = network.TheData.Coin.ToString("n0");
+        SaveGame.SaveProgress(network.TheData);
+
+        if (isWin && order == 1)
+        {
+            gameOverPanelTitle.text = "YOU WIN !!!";
+            gameOverPanelPlayerOrder.text = "1st";
+        }
+        else if (isWin && order == 2)
+        {
+            gameOverPanelTitle.text = "NICE PLAY !";
+            gameOverPanelPlayerOrder.text = "2nd";
+        }
+        else if (isWin && order == 3)
+        {
+            gameOverPanelTitle.text = "NOT BAD !";
+            gameOverPanelPlayerOrder.text = "3rd";
+        }
+        else if (isWin && order == 4)
+        {
+            gameOverPanelTitle.text = "TRY AGAIN !";
+            gameOverPanelPlayerOrder.text = "4th";
+        }
+        else if (isWin && order == 5)
+        {
+            gameOverPanelTitle.text = "TRY AGAIN !";
+            gameOverPanelPlayerOrder.text = "5th";
+        }
+        else if (!isWin)
+        {
+            gameOverPanelTitle.text = "YOU LOSE !";
+            gameOverPanelPlayerOrder.text = "";
+        }
+    }
+
+    // Exit Room
+    public void ExitRoom()
+    {
+        network.SendMassageClient("Server", "ExitRoom");
+    }
+    public void OnExitRoom()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(0);
     }
 }

@@ -35,7 +35,7 @@ namespace Wkwk_Server
 
         // Encryption
         RsaEncryption rsaEncryption;
-        AesEncryption aesEncryption;
+        public AesEncryption aesEncryption;
 
         // Private key
         private string ServerPrivateKey;
@@ -56,10 +56,18 @@ namespace Wkwk_Server
             ServerPrivateKey = File.ReadAllText(Directory.GetCurrentDirectory() + "\\Private-Key.txt");
             rsaEncryption = new RsaEncryption(ServerPrivateKey);
 
-            // Preparation
-            PrepareEncryption();
-            // Ask for name and start listening
-            AskPlayerName();
+            try
+            {
+                // Preparation
+                PrepareEncryption();
+                // Ask for name and start listening
+                AskPlayerName();
+            }
+            catch
+            {
+                // Interference from outside
+                Server.CloseConnection(this);
+            }
         }
 
         // Preparation Method -------------------------------------------------------------------------
@@ -197,12 +205,13 @@ namespace Wkwk_Server
                                 JoinRoom(info[2]);
                                 break;
                             case "SpawnPlayer":
-                                SpawnPlayer();
+                                SpawnPlayer(int.Parse(info[2]));
                                 break;
                             case "ExitRoom":
                                 ExitRoom();
                                 break;
                             case "ChangeName":
+                                Console.WriteLine("Server : " + playerName + " change name to " + info[2]);
                                 playerName = info[2];
                                 break;
                             default:
@@ -220,10 +229,10 @@ namespace Wkwk_Server
                                 switch (info[1])
                                 {
                                     case "SpawnMyPlayer":
-                                        string[] theData = new string[] { "SpawnPlayer", info[2], info[3], BoolToString(false) };
+                                        string[] theData = new string[] { "SpawnPlayer", info[2], info[3], info[4], BoolToString(false) };
                                         SendMassage("Client", myRoom.playerList[i].playerName, theData);
                                         // Print massage
-                                        Console.WriteLine(playerName + " : Send Object Player to " + myRoom.playerList[i].playerName);
+                                        //Console.WriteLine(playerName + " : Send Object Player to " + myRoom.playerList[i].playerName);
                                         break;
                                     default:
 
@@ -275,7 +284,7 @@ namespace Wkwk_Server
                     // Send to all
                     for(int i = 0; i < myRoom.playerList.Count; i++)
                     {
-                        SendSerializationDataHandler(myRoom.playerList[i].stream, aesEncryption.Encrypt(data));
+                        SendSerializationDataHandler(myRoom.playerList[i].stream, myRoom.playerList[i].aesEncryption.Encrypt(data));
                     }
                 }
 
@@ -294,7 +303,7 @@ namespace Wkwk_Server
                                 data += "|" + massage[j];
                             }
                             // Send massage
-                            SendSerializationDataHandler(myRoom.playerList[i].stream, aesEncryption.Encrypt(data));
+                            SendSerializationDataHandler(myRoom.playerList[i].stream, myRoom.playerList[i].aesEncryption.Encrypt(data));
                         }
                     }
                 }
@@ -315,7 +324,7 @@ namespace Wkwk_Server
                             }
 
                             // Send massage
-                            SendSerializationDataHandler(myRoom.playerList[i].stream, aesEncryption.Encrypt(data));
+                            SendSerializationDataHandler(myRoom.playerList[i].stream, myRoom.playerList[i].aesEncryption.Encrypt(data));
                         }
                     }
                 }
@@ -346,7 +355,7 @@ namespace Wkwk_Server
                 // Check if there is room can join
                 for(int i = 0; i < roomList.Count; i++)
                 {
-                    if (roomList[i].canJoin)
+                    if (roomList[i].canJoin && roomList[i].isPublic)
                     {
                         onlineList.Remove(this);
                         roomList[i].playerList.Add(this);
@@ -444,25 +453,47 @@ namespace Wkwk_Server
             {
                 if (a.tcp == tcp)
                 {
+                    // If this is master, set other player to master
+                    if (isMaster)
+                    {
+                        for (int i = 0; i < myRoom.playerList.Count; i++)
+                        {
+                            if (myRoom.playerList[i].playerName != playerName)
+                            {
+                                myRoom.playerList[i].SetToMaster();
+                            }
+                        }
+                    }
+
                     // Remove from player list in room
                     myRoom.playerList.Remove(a);
 
-                    // Add to online list
-                    onlineList.Add(a);
-                    listPosition = 0;
-
-                    myRoom.CheckRoom();
-                    myRoom = null;
-
                     // Print massage
                     Console.WriteLine(playerName + " : Exit from room " + myRoom.roomName);
+
+                    // Destroy room if needed
+                    if (myRoom.playerList.Count <= 0)
+                    {
+                        Server.DestroyRoom(myRoom, roomList);
+                    }
+
+                    // Add to online list
+                    onlineList.Add(a);
+                    listPosition = 1;
+
+                    myRoom = null;
+
+                    // Send Massage To Client
+                    SendMassage("Server", playerName, "ExitRoom");
+
+                    return;
                 }
             }
         }
 
         // Others Method -----------------------------------------------------------------------------------------------
         // Spawning player in random start position (0-4)
-        private void SpawnPlayer()
+        private void SpawnPlayer(int selectedChar)
         {
             // Random pos
             Random rand = new Random();
@@ -476,9 +507,7 @@ namespace Wkwk_Server
 
             // If it's not
             myRoom.randomPosUsed[randPos] = true;
-
-            // If it's not
-            string[] massage = new string[] { "SpawnPlayer", playerName, randPos.ToString(), BoolToString(true) };
+            string[] massage = new string[] { "SpawnPlayer", playerName, randPos.ToString(), selectedChar.ToString(), BoolToString(true) };
             // Send massage to all player
             SendMassage("Server", "All", massage);
 

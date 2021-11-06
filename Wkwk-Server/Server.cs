@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Net;
 using System.Threading;
-using System.IO;
 
 namespace Wkwk_Server
 {
@@ -96,7 +95,6 @@ namespace Wkwk_Server
             player.CreateRoom();
         }
 
-        //
         // Disconnect from server --------------------------------------------------------------
         public static void DisconnectFromServer(Player player, List<Player> theList)
         {
@@ -149,6 +147,11 @@ namespace Wkwk_Server
                     return;
                 }
             }
+        }
+        public static void CloseConnection(Player player)
+        {
+            player.stream.Close();
+            player = null;
         }
     }
 }

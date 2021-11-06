@@ -31,6 +31,7 @@ public class JoinRoomPanel : MonoBehaviour
     // Join Room
     public void JoinRoom()
     {
+        StartPanel.RoomName = inputRoomName.text;
         string[] massage = new string[] { "JoinRoom", inputRoomName.text };
         network.SendMassageClient("Server", massage);
     }

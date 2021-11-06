@@ -31,7 +31,6 @@ public class Client : MonoBehaviour
     [SerializeField] public bool isMaster;
 
     // All players (in room)
-    [SerializeField] private GameObject playerPrefab;
     private List<PlayerManager> playerList;
     private PlayerManager myPlayer;
 
@@ -144,7 +143,10 @@ public class Client : MonoBehaviour
     private void RecieveMassage(string massage)
     {
         // Decrypt
-        string decryptMassage = aesEncryption.Decrypt(massage); 
+        string decryptMassage = aesEncryption.Decrypt(massage);
+
+        // Debugging
+        Debug.Log(decryptMassage);
 
         // recieve format : Sender|Data1|Data2|...
         string[] data = decryptMassage.Split('|');
@@ -176,10 +178,13 @@ public class Client : MonoBehaviour
                     break;
                 case "SpawnPlayer":
                     // Spawn player
-                    SpawnPlayer(data[2], int.Parse(data[3]), StringToBool(data[4]));
+                    SpawnPlayer(data[2], int.Parse(data[3]), int.Parse(data[4]), StringToBool(data[5]));
                     break;
                 case "SetToMaster":
                     isMaster = true;
+                    break;
+                case "ExitRoom":
+                    FindObjectOfType<GameManager>().OnExitRoom();
                     break;
                 default:
                     Debug.Log("Unreconized massage : " + decryptMassage);
@@ -191,7 +196,7 @@ public class Client : MonoBehaviour
             switch (data[1])
             {
                 case "SpawnPlayer":
-                    SpawnPlayer(data[2], int.Parse(data[3]), StringToBool(data[4]));
+                    SpawnPlayer(data[2], int.Parse(data[3]), int.Parse(data[4]), StringToBool(data[5]));
                     break;
                 case "SpawnPlatform":
                     int[] platformData = new int[] { int.Parse(data[2]), int.Parse(data[3]), int.Parse(data[4]), int.Parse(data[5]), int.Parse(data[6]), };
@@ -219,9 +224,6 @@ public class Client : MonoBehaviour
                     break;
             }
         }
-
-        // Debugging
-        Debug.Log(decryptMassage);
     }
 
     // Sending Massage -----------------------------------------------------------------------------------------
@@ -246,9 +248,10 @@ public class Client : MonoBehaviour
     }
 
     // General Method ------------------------------------------------------------------------------------------
-    private void SpawnPlayer(string name, int row, bool needFeedBack)
+    private void SpawnPlayer(string name, int row, int skin, bool needFeedBack)
     {
-        PlayerManager tempPlay = Instantiate(playerPrefab).GetComponent<PlayerManager>();
+        GameManager manager = FindObjectOfType<GameManager>();
+        PlayerManager tempPlay = Instantiate(manager.playerPrefab[skin]).GetComponent<PlayerManager>();
         tempPlay.playerName = name;
         tempPlay.rowPos = row;
         playerList.Add(tempPlay);
@@ -261,7 +264,7 @@ public class Client : MonoBehaviour
         else if(needFeedBack)
         {
             // Send Feedback
-            string[] mass = new string[] { "SpawnMyPlayer", myPlayer.playerName, myPlayer.rowPos.ToString(), BoolToString(false) };
+            string[] mass = new string[] { "SpawnMyPlayer", myPlayer.playerName, myPlayer.rowPos.ToString(), TheData.selectedChar.ToString(), BoolToString(false) };
             SendMassageClient(name, mass);
         }
     }

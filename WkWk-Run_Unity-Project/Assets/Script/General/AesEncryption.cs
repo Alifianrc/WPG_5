@@ -48,7 +48,7 @@ public class AesEncryption
         }
         catch(Exception e)
         {
-            Console.WriteLine("Error Aes decrypt : " + e.Message);
+            return "Error Aes decrypt : " + e.Message;
         }
 
         return null;
