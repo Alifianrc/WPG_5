@@ -83,6 +83,7 @@ public class CreateRoomPanel : MonoBehaviour
 
     public void CreateRoom()
     {
+        StartPanel.RoomName = inputRoomName.text;
         string[] massage = new string[] { "CreateRoom", inputRoomName.text, maxPlayerCount.ToString(), BoolToString(isPublic) };
         network.SendMassageClient("Server", massage);
     }

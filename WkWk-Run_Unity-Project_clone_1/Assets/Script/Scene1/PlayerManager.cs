@@ -6,11 +6,13 @@ using UnityEngine.UI;
 public class PlayerManager : MonoBehaviour
 {
     // Player name
-    public string playerName;
+    [HideInInspector] public string playerName { get; set; }
 
     // Player default speed
     private float playerDefaultSpeed = 3f;
+    private float playerDefaultSwipeSpeed = .2f;
     [HideInInspector] public float playerSpeed { get; set; }
+    [HideInInspector] public float playerSwipeSpeed { get; set; }
 
     // Position in arena (0 - 4)
     public int rowPos { get; set; }
@@ -18,11 +20,22 @@ public class PlayerManager : MonoBehaviour
     // Main control
     private GameManager manager;
     private Client network;
+    private bool isDead = false;
 
     // UI 
+    [SerializeField] private Canvas canvas;
     private Slider mySlider;
     private Transform finishPoint;
     private Vector2 startPos;
+    [SerializeField] private Text nameText;
+    private Text coinText;
+
+    // Order in race
+    public int PlayerOrder { get; private set; }
+    [SerializeField] private Text orderText;
+
+    // Animation
+    private Animator animator;
 
     // Swipe control
     private Vector2 startTouchPos;
@@ -31,10 +44,21 @@ public class PlayerManager : MonoBehaviour
     private bool touchStopped;
     private bool touchIsOn;
     private bool rowChanged;
-
     // Swipe control range
     private float swipeRange = 50;
     private float tabRange = 10;
+
+    // Effect
+    private bool trapEffectIsActive;
+    private float trapSpeed = .3f;
+    private float trapTime = 1.5f;
+
+    // Increase speed
+    private float levelStartPos;
+    private float levelDistance;
+
+    // Audio
+    private AudioManager audio;
 
     void Start()
     {
@@ -42,8 +66,19 @@ public class PlayerManager : MonoBehaviour
         manager = FindObjectOfType<GameManager>();
         network = FindObjectOfType<Client>();
         finishPoint = manager.FinishPoint;
+        levelDistance = manager.levelDistance;
 
-        // Set camera
+        // Animation
+        try
+        {
+            animator = GetComponent<Animator>();
+        }
+        catch
+        {
+
+        }
+
+        // Set camera and UI
         if (playerName == network.MyName)
         {
             FindObjectOfType<CameraFollow>().playerPos = gameObject.transform;
@@ -51,7 +86,16 @@ public class PlayerManager : MonoBehaviour
             mySlider.value = 0;
             startPos = new Vector2(transform.position.x, transform.position.y);
             finishPoint = manager.FinishPoint;
+            coinText = manager.coinText;
+            coinText.text = network.TheData.Coin.ToString("n0");
         }
+        // Set Name
+        nameText.text = playerName;
+        // Set UI order
+        PlayerOrder = 1;
+        orderText.text = PlayerOrder.ToString();
+        // Set Camera
+        canvas.worldCamera = FindObjectOfType<CameraFollow>().GetComponent<Camera>();
 
         // Set player speed
         playerSpeed = playerDefaultSpeed;
@@ -88,16 +132,22 @@ public class PlayerManager : MonoBehaviour
                 // Check if finish
                 if (transform.position.y > finishPoint.position.y)
                 {
-                    // Tell server
-
                     // Some UI
-
+                    manager.GameOver(true, PlayerOrder);
                 }
+            }
+
+            // Check level
+            if (levelStartPos + levelDistance < transform.position.y)
+            {
+                // Increase level
+                playerDefaultSpeed += .7f;
+                playerDefaultSwipeSpeed -= .007f;
             }
         }
     }
 
-    // Start Sync position
+    // Start Sync position -------------------------------------------------------------------------------------------------
     public void BeginSyncPos()
     {
         StartCoroutine(SyncPos());
@@ -114,6 +164,7 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    // Player Control ------------------------------------------------------------------------------------------------------
     private void SwipeControl()
     {
         if (Input.GetMouseButtonDown(0))
@@ -185,10 +236,70 @@ public class PlayerManager : MonoBehaviour
             rowChanged = false;
         }
     }
-
     public void SetBoolRowChange(int newRow)
     {
         rowPos = newRow;
         rowChanged = true;
     }
+
+    // Traps ---------------------------------------------------------------------------------------------------------------
+    public void GetTrap()
+    {
+        if (!trapEffectIsActive && !isDead)
+        {
+            //audio.Play("Fall");
+            // Slowdown player
+            trapEffectIsActive = true;
+            playerSpeed = playerDefaultSpeed * trapSpeed;
+            playerSwipeSpeed = playerDefaultSwipeSpeed * trapSpeed;
+            StartCoroutine(TrapActive());
+        }
+    }
+    private IEnumerator TrapActive()
+    {
+        // Return player speed after few second
+        yield return new WaitForSeconds(trapTime);
+        if (!isDead)
+        {
+            trapEffectIsActive = false;
+            playerSpeed = playerDefaultSpeed;
+            playerSwipeSpeed = playerDefaultSwipeSpeed;
+        }
+    }
+    public void GetLava()
+    {
+        if (!isDead)
+        {
+            //audio.Stop("Run");
+            //audio.Play("Scream");
+            isDead = true;
+            // Player dead
+            if (playerName == network.MyName)
+            {
+                manager.GameOver(false, 0);
+                playerSpeed = 0f;
+                if (animator != null)
+                    animator.SetFloat("Speed", playerSpeed);
+            }
+            else
+            {
+                playerSpeed = 0;
+                if (animator != null)
+                    animator.SetFloat("Speed", playerSpeed);
+            }
+        }
+    }
+    public void GetCoin(int value)
+    {
+        network.TheData.Coin += value;
+        coinText.text = network.TheData.Coin.ToString("n0");
+    }
+
+    // UI -----------------------------------------------------------------------------------
+    public void ChangePlayerOrder(int value)
+    {
+        PlayerOrder = value;
+        orderText.text = value.ToString();
+    }
+
 }

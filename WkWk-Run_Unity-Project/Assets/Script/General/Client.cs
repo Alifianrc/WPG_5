@@ -14,11 +14,14 @@ public class Client : MonoBehaviour
     public IPAddress ipAd = IPAddress.Parse("127.0.0.1");
     // 182.253.90.115
 
-    // Name 
+    // Player and Room name
     [HideInInspector] public SaveData TheData { get; private set; }
-    [SerializeField] public string MyName;
+    public string MyName { get; set; }
+    public string roomName { get; set; }
 
+    // Connection status
     public bool isConnected { get; private set; }
+    private bool isReady = false;
 
     // Check connection timer
     float CheckTime = 8;
@@ -27,10 +30,12 @@ public class Client : MonoBehaviour
     // Master of room
     [SerializeField] public bool isMaster;
 
-    // Player
-    [SerializeField] private GameObject playerPrefab;
+    // All players (in room)
     private List<PlayerManager> playerList;
     private PlayerManager myPlayer;
+
+    RsaEncryption rsaEncryption;
+    AesEncryption aesEncryption;
 
     private void Awake()
     {
@@ -43,30 +48,28 @@ public class Client : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         client = new TcpClient();
-
         checkCountDown = CheckTime;
-
         playerList = new List<PlayerManager>();
+
+        rsaEncryption = new RsaEncryption();
+        aesEncryption = new AesEncryption();
 
         try
         {
             client.Connect(ipAd, port);
             networkStream = client.GetStream();
+            PrepareEncryption();
 
-            isConnected = true;
             Debug.Log("Connected to server");
         }
         catch(Exception e)
         {
             Debug.Log("Client connecting error : " + e.Message);
 
-            isConnected = false;
-
             // Try connecting again and again
             StartCoroutine(TryConnecting());
         }
     }
-
     // Try connecting to server
     private IEnumerator TryConnecting()
     {
@@ -81,8 +84,8 @@ public class Client : MonoBehaviour
             {
                 client.Connect(ipAd, port);
                 networkStream = client.GetStream();
+                PrepareEncryption();
 
-                isConnected = true;
                 Debug.Log("Connected to server");
             }
             catch (Exception e)
@@ -94,7 +97,7 @@ public class Client : MonoBehaviour
 
     void Update()
     {
-        if (client.Connected)
+        if (client.Connected && isReady)
         {
             if (networkStream.DataAvailable)
             {
@@ -115,10 +118,38 @@ public class Client : MonoBehaviour
         }
     }
 
+    // Preparation ---------------------------------------------------------------------------------------------
+    private void PrepareEncryption()
+    {
+        // Send client public key to server
+        BinaryFormatter formatter = new BinaryFormatter();
+        string key = rsaEncryption.ConvertKeyToString(rsaEncryption.clientPublicKey);
+        string encrypKey = rsaEncryption.Encrypt(key, rsaEncryption.serverPublicKey);
+        formatter.Serialize(networkStream, encrypKey);
+
+        // Wait for new key
+        string answer = formatter.Deserialize(networkStream) as string;
+        string aesKey = rsaEncryption.Decrypt(answer, rsaEncryption.clientPrivateKey);
+
+        // Save the new key
+        aesEncryption.SetKey(aesEncryption.ConvertStringToKey(aesKey));
+
+        // Ready to communicate
+        isReady = true;
+        isConnected = true;
+    }
+
+    // Receiving Massage ---------------------------------------------------------------------------------------
     private void RecieveMassage(string massage)
     {
+        // Decrypt
+        string decryptMassage = aesEncryption.Decrypt(massage);
+
+        // Debugging
+        Debug.Log(decryptMassage);
+
         // recieve format : Sender|Data1|Data2|...
-        string[] data = massage.Split('|');
+        string[] data = decryptMassage.Split('|');
         if(data[0] == "Server")
         {
             switch (data[1]) 
@@ -131,10 +162,6 @@ public class Client : MonoBehaviour
                     // Connection check success
                     checkCountDown = CheckTime;
                     break;
-                case "JoinedLobby":
-                    // If joined in lobby
-                    FindObjectOfType<MainMenuManager>().OnJoinedLobby();
-                    break;
                 case "CreatedRoom":
                     // If joined in room
                     FindObjectOfType<MainMenuManager>().OnJoinedRoom();
@@ -144,19 +171,23 @@ public class Client : MonoBehaviour
                 case "JoinedRoom":
                     // If joined in room
                     FindObjectOfType<MainMenuManager>().OnJoinedRoom();
+                    roomName = data[2];
                     break;
                 case "RoomNotFound":
                     FindObjectOfType<JoinRoomPanel>().RoomNotFound();
                     break;
                 case "SpawnPlayer":
                     // Spawn player
-                    SpawnPlayer(data[2], int.Parse(data[3]), StringToBool(data[4]));
+                    SpawnPlayer(data[2], int.Parse(data[3]), int.Parse(data[4]), StringToBool(data[5]));
                     break;
                 case "SetToMaster":
                     isMaster = true;
                     break;
+                case "ExitRoom":
+                    FindObjectOfType<GameManager>().OnExitRoom();
+                    break;
                 default:
-                    Debug.Log("Unreconized massage : " + massage);
+                    Debug.Log("Unreconized massage : " + decryptMassage);
                     break;
             }
         }
@@ -165,7 +196,7 @@ public class Client : MonoBehaviour
             switch (data[1])
             {
                 case "SpawnPlayer":
-                    SpawnPlayer(data[2], int.Parse(data[3]), StringToBool(data[4]));
+                    SpawnPlayer(data[2], int.Parse(data[3]), int.Parse(data[4]), StringToBool(data[5]));
                     break;
                 case "SpawnPlatform":
                     int[] platformData = new int[] { int.Parse(data[2]), int.Parse(data[3]), int.Parse(data[4]), int.Parse(data[5]), int.Parse(data[6]), };
@@ -189,12 +220,13 @@ public class Client : MonoBehaviour
                     ChangePlayerRow(data[2], int.Parse(data[3]));
                     break;
                 default:
-                    Debug.Log("Unreconized massage : " + massage);
+                    Debug.Log("Unreconized massage : " + decryptMassage);
                     break;
             }
         }
     }
 
+    // Sending Massage -----------------------------------------------------------------------------------------
     public void SendMassageClient(string target, string massage)
     {
         string[] data = new string[1];
@@ -212,12 +244,14 @@ public class Client : MonoBehaviour
         }
 
         BinaryFormatter formatter = new BinaryFormatter();
-        formatter.Serialize(networkStream, data);
+        formatter.Serialize(networkStream, aesEncryption.Encrypt(data));
     }
 
-    private void SpawnPlayer(string name, int row, bool needFeedBack)
+    // General Method ------------------------------------------------------------------------------------------
+    private void SpawnPlayer(string name, int row, int skin, bool needFeedBack)
     {
-        PlayerManager tempPlay = Instantiate(playerPrefab).GetComponent<PlayerManager>();
+        GameManager manager = FindObjectOfType<GameManager>();
+        PlayerManager tempPlay = Instantiate(manager.playerPrefab[skin]).GetComponent<PlayerManager>();
         tempPlay.playerName = name;
         tempPlay.rowPos = row;
         playerList.Add(tempPlay);
@@ -230,11 +264,10 @@ public class Client : MonoBehaviour
         else if(needFeedBack)
         {
             // Send Feedback
-            string[] mass = new string[] { "SpawnMyPlayer", myPlayer.playerName, myPlayer.rowPos.ToString(), BoolToString(false) };
+            string[] mass = new string[] { "SpawnMyPlayer", myPlayer.playerName, myPlayer.rowPos.ToString(), TheData.selectedChar.ToString(), BoolToString(false) };
             SendMassageClient(name, mass);
         }
     }
-
     public void StartSyncPlayer()
     {
         foreach(PlayerManager a in playerList)
@@ -245,12 +278,10 @@ public class Client : MonoBehaviour
             }
         }
     }
-
     public int PlayerCountInRoom()
     {
         return playerList.Count;
     }
-
     public void ChangePlayerRow(string thePlayerName, int row)
     {
         foreach(PlayerManager a in playerList)
@@ -262,7 +293,7 @@ public class Client : MonoBehaviour
         }
     }
 
-    // Custom method to convert sting to bool
+    // Custom method to convert sting to bool ----------------------------------------------------------------------------
     // 0 = false ; 1 = true
     private bool StringToBool(string a)
     {

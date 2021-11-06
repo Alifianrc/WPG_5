@@ -9,27 +9,48 @@ using UnityEngine.UI;
 public class StartPanel : MonoBehaviour
 {
     // UI
-    [SerializeField] private Text startText;
     [SerializeField] private GameObject waitingPlayerPanel;
     [SerializeField] private GameObject startManualButton;
+    [SerializeField] private GameObject roomName;
+    [SerializeField] private Text playerInRoom;
 
-    // Parameter
-    [SerializeField] private float PlayerWaitingTime = 10f;
+    // Waiting time
+    private float PlayerWaitingTime = 10f;
+    private bool waitIsDone;
+
+    // Count down time
+    [SerializeField] private Text startText;
     [SerializeField] private float countDownTime = 4f;
     private float startTime;
+
+    // Minimal players in room
+    private int minPlayerInRoom = 2;
 
     // Game manager
     private GameManager manager;
     private Client network;
 
+    // Static room name
+    public static string RoomName;
+
     private void Start()
     {
         startTime = Time.time;
+        waitIsDone = false;
 
         manager = FindObjectOfType<GameManager>();
         network = FindObjectOfType<Client>();
 
         //startManualButton.SetActive(false);
+
+        if(RoomName != null)
+        {
+            roomName.transform.GetChild(0).GetComponent<Text>().text = RoomName;
+        }
+        else
+        {
+            roomName.SetActive(false);
+        }
 
         StartCoroutine(CheckRoom());
     }
@@ -37,7 +58,10 @@ public class StartPanel : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-       
+        if(Time.time - startTime >= PlayerWaitingTime)
+        {
+            waitIsDone = true;
+        }
     }
 
     // Check room condition
@@ -46,7 +70,7 @@ public class StartPanel : MonoBehaviour
         while (!manager.GameIsStarted)
         {
             // Check room condition
-            if (network.isMaster && network.PlayerCountInRoom() >= 2)
+            if (network.isMaster && network.PlayerCountInRoom() >= minPlayerInRoom && waitIsDone)
             {
                 try
                 {
@@ -58,6 +82,16 @@ public class StartPanel : MonoBehaviour
                 }
             }
 
+            // Set UI players in room
+            if(network.PlayerCountInRoom() <= 0)
+            {
+                playerInRoom.text = "1";
+            }
+            else
+            {
+                playerInRoom.text = network.PlayerCountInRoom().ToString();
+            }
+            
             yield return new WaitForSeconds(2);
         }
     }
@@ -105,6 +139,7 @@ public class StartPanel : MonoBehaviour
 
         // Begin Couretine
         manager.StartSpawnPlatform();
+        manager.FindPlayers();
         network.StartSyncPlayer();
 
         Destroy(gameObject);

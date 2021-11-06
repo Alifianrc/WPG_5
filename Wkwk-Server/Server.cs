@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Net;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 
 namespace Wkwk_Server
@@ -11,8 +10,6 @@ namespace Wkwk_Server
     {
         // List of online player (not in lobby or room)
         private List<Player> onlineList;
-        // List of player want to play / queue
-        private List<Player> lobbyList;
         // List of room of the Games
         private List<Room> roomList;
 
@@ -30,7 +27,6 @@ namespace Wkwk_Server
         {
             // Initialization
             onlineList = new List<Player>();
-            lobbyList = new List<Player>();
             roomList = new List<Room>();
 
             // Try start the server
@@ -64,28 +60,8 @@ namespace Wkwk_Server
                 // Accept Client
                 TcpClient client = serverListener.AcceptTcpClient();
 
-                // Ask for name
-                Player player = new Player(client, onlineList, lobbyList, roomList);
-                NetworkStream tempStream = player.tcp.GetStream();
-                string massage = "Server|WHORU";
-
-                BinaryFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(tempStream, massage);
-
-                // Waiting for answer
-                string answer = formatter.Deserialize(tempStream) as string;
-                string[] info = answer.Split("|");
-
-                // Add to list
-                player.playerName = info[1];
-                onlineList.Add(player);
-                player.listPosition = 0;
-
-                // Start player
-                player.StartReceiving();
-
-                // Print massage in console
-                Console.WriteLine("Server : Client " + player.playerName + " is online");
+                // Make a new class to handle client
+                Player player = new Player(client, onlineList, roomList);               
             }
         }
 
@@ -119,7 +95,6 @@ namespace Wkwk_Server
             player.CreateRoom();
         }
 
-        //
         // Disconnect from server --------------------------------------------------------------
         public static void DisconnectFromServer(Player player, List<Player> theList)
         {
@@ -172,6 +147,11 @@ namespace Wkwk_Server
                     return;
                 }
             }
+        }
+        public static void CloseConnection(Player player)
+        {
+            player.stream.Close();
+            player = null;
         }
     }
 }
