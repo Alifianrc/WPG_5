@@ -11,7 +11,7 @@ public class Client : MonoBehaviour
     private TcpClient client;
     private NetworkStream networkStream;
     private int port = 3002;
-    public IPAddress ipAd = IPAddress.Parse("127.0.0.1");
+    public IPAddress ipAd = IPAddress.Parse("45.130.229.104");
     // 127.0.0.1
     // 45.130.229.104
 
