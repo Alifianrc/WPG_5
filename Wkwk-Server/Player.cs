@@ -53,8 +53,8 @@ namespace Wkwk_Server
             aesEncryption = new AesEncryption();
 
             // Load private key
-            ServerPrivateKey = File.ReadAllText(Directory.GetCurrentDirectory() + "\\Private-Key.txt");
-            rsaEncryption = new RsaEncryption(ServerPrivateKey);
+            //ServerPrivateKey = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Private-Key.txt"));
+            rsaEncryption = new RsaEncryption(GetPrivateKey());
 
             try
             {
@@ -113,6 +113,21 @@ namespace Wkwk_Server
 
             // Print massage in console
             Console.WriteLine("Server : Client " + playerName + " is online");
+        }
+        private String GetPrivateKey()
+        {
+            string part1 = $"<?xml version=\"1.0\" encoding=\"utf-16\"?>\n  <RSAParameters xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n";
+            string part2 = "  <D>jDhuqjJ8bNg3SfWOAtKkEse76Wnw0mDaBmR3gY0nNr9J9Htm0w1SQhsHfi8bZg5A6qRmowAjG/yZ3Ic00zQ8Kf69jmSMyR5pYPlNjYcx8pNH9Qi5LZEIBW/TzK9X9DUyNyd0e1+FcLd9JIAFzu+1pRCGLNOOYVAwHjM/Mo4sPkrACA66V3Y20THLERQ718wIfMKYY+tH3x2VAdPhQGCjcyVKZEqiWOJvYk2JMXShJiz6A6TkXcQM5uuNmTedt+xpMuXb2nlrVA5al0KNl3sB9zW0FkRn52vxo2Y5ULnTE1BoeDuvwiVRX8jAVw56zxO5J09w2EMg2IWmt2M8g/MznQ==</D>\n";
+            string part3 = "  <DP>OvOUPTcxVhLdf5kPhJNMuXum1OjC/zBsqehTB5OiH33glI8An36D6/bc1Y+h1c4tTtSO9yANCuxa6BNW3SHn2JdJoNFO9NPi+AI1abfcsPntD8EILvyrCeo5/SnNFJoDYvnfF6aVtyeOaMahvd/SUBcLSQTiOgYeUgHWU+5iuis=</DP>\n";
+            string part4 = "  <DQ>F7ZsUIlD84fFUS9Vvp3iBVh01n0yLl67MgA28Dtw8AcA1vHS4k7QkrBQPmKZC6QQPWLZCU7wM7XQw+oOaDc3cULJk8idVTjPvfG6UBv11L2P4lVl5jM3NHgjqYVx/jeXqGKZ9xviFOp1uuY0kDVgcH1+Jyb2KloQG2+FVTCHk18=</DQ>\n";
+            string part5 = "  <Exponent>AQAB</Exponent>\n";
+            string part6 = "  <InverseQ>rDNIFk9H4AGbvKqAGEzOcTDlDwVMHmCAE64V/U63AeEETQ8l4uYwmPqCbMzk2UTQwQYirmmdQd/mG/aErJ+MkkhEZfGHfb+jlvWTEX3nZ1NWlSB2w6fJHHFI/zaTfqaG+9Na5XWzYY+snHn6kPk6k1iCVv5OKQoizzv+PyFju9w=</InverseQ>\n";
+            string part7 = "  <Modulus>2xkVs60nk8a5sdGskTHN2ZVQjiAt4EJ7ZXlbDvz4oeezN1+SII6cVQSIT63U8+5kI8yRPFmpUYwhPAW+3aAV3T1noFvEfRfGuIacOxYu36cZb2+nK85meAGq7qeYKgYOqa0GyTut2RoROVylsSn6OxVHQTColaZMluALXRGZ8JVnUsH8Rq//XkePPvUfvKW2y3ek6VS37SIkEbfjSU/X3kcFu6woTMbEGcRRTsWUOEhhYtIK9DT2tTR4wxVM8OTHWVycixZbJ9F/3Ve9pMtJCvQ3IYH3EUw5VTZMpqqlUF4wHTNYx/hCS1pU4+fnjzP8iyCgrPy8Vh8CK2ETCAhUqQ==</Modulus>\n";
+            string part8 = "  <P>/qFRL1mvNEGXZqRrmpzUvIBM8jVqWAdajtsMkWorwFvJCcMLVFzaou4UFb01y6m8KFJu+qsv2UkJTcR9vRksOucVaZWZ0zO1oEmnWlZ1nM14AXPcB3AmLKo0MSDAuDpPSB2YQy3dTn5Uq3AXBaUQCznYA6WwG/Irs2dHlZU+nyM=</P>\n";
+            string part9 = "  <Q>3EbU9oOXhjaIZg+QdD9zndOXmi6LGyOUw6JqVcttYkwpAGxYQMvjdf++WNwFBCP94BuFNncAWaC6uDgcPZm7lNGMMd1HOV+41Wq6NypFejoCGc9P7JdK2OVVlk1FsZtDvuloBbpNB1AuD3SkGg0ovqVYBIo541eTVy66dwOev8M=</Q>\n";
+            string part10 = "</RSAParameters>";
+
+            return (part1 + part2 + part3 + part4 + part5 + part6 + part7 + part8 + part9 + part10);
         }
 
         // Check player connection ---------------------------------------------------------------------

@@ -12,7 +12,8 @@ public class Client : MonoBehaviour
     private NetworkStream networkStream;
     private int port = 3002;
     public IPAddress ipAd = IPAddress.Parse("127.0.0.1");
-    // 182.253.90.115
+    // 127.0.0.1
+    // 45.130.229.104
 
     // Player and Room name
     [HideInInspector] public SaveData TheData { get; private set; }
