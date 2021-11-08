@@ -11,7 +11,7 @@ public class SelectNamePanel : MonoBehaviour
     {
         confirmButton.SetActive(false);
 
-        if (FindObjectOfType<Client>().TheData.UserName == "")
+        if (GameDataLoader.TheData.UserName == "")
         {
             backButton.SetActive(false);
         }
@@ -24,9 +24,10 @@ public class SelectNamePanel : MonoBehaviour
     // Save name
     public void SelectName()
     {
-        FindObjectOfType<Client>().TheData.UserName = inputName.text;
-        SaveGame.SaveProgress(FindObjectOfType<Client>().TheData);
+        GameDataLoader.TheData.UserName = inputName.text;
+        SaveGame.SaveProgress(GameDataLoader.TheData);
         FindObjectOfType<MainMenuManager>().nameText.text = inputName.text;
+        FindObjectOfType<Client>().MyName = inputName.text;
 
         // Tell server
         Client client = FindObjectOfType<Client>();

@@ -111,9 +111,9 @@ public class GameManager : MonoBehaviour
         randomPlatfromValue = 95;
 
         // Spawn Player
-        network.SendMassageClient("Server", "SpawnPlayer|" + network.TheData.selectedChar);
+        network.SendMassageClient("Server", "SpawnPlayer|" + GameDataLoader.TheData.selectedChar);
         // Set SLider Image
-        SliderImage.sprite = SliderSpriteList[network.TheData.selectedChar];
+        SliderImage.sprite = SliderSpriteList[GameDataLoader.TheData.selectedChar];
 
         // Creating start map
         StartMapSpawn();
@@ -319,10 +319,10 @@ public class GameManager : MonoBehaviour
 
         gameOverPanel.SetActive(true);
 
-        gameOverPanelSprite.sprite = characterSpriteFace[network.TheData.selectedChar];
+        gameOverPanelSprite.sprite = characterSpriteFace[GameDataLoader.TheData.selectedChar];
 
-        gameOverPanelCoin.text = network.TheData.Coin.ToString("n0");
-        SaveGame.SaveProgress(network.TheData);
+        gameOverPanelCoin.text = GameDataLoader.TheData.Coin.ToString("n0");
+        SaveGame.SaveProgress(GameDataLoader.TheData);
 
         if (isWin && order == 1)
         {

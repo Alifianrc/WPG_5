@@ -16,7 +16,7 @@ public class Client : MonoBehaviour
     // 45.130.229.104
 
     // Player and Room name
-    [HideInInspector] public SaveData TheData { get; private set; }
+
     public string MyName { get; set; }
     public string roomName { get; set; }
 
@@ -38,15 +38,12 @@ public class Client : MonoBehaviour
     RsaEncryption rsaEncryption;
     AesEncryption aesEncryption;
 
-    private void Awake()
-    {
-        TheData = SaveGame.LoadData();
-        MyName = TheData.UserName;
-    }
     void Start()
     {
         // Never destroy this object
         DontDestroyOnLoad(gameObject);
+
+        MyName = GameDataLoader.TheData.UserName;
 
         client = new TcpClient();
         checkCountDown = CheckTime;
@@ -54,23 +51,10 @@ public class Client : MonoBehaviour
 
         rsaEncryption = new RsaEncryption();
         aesEncryption = new AesEncryption();
-
-        try
-        {
-            client.Connect(ipAd, port);
-            networkStream = client.GetStream();
-            PrepareEncryption();
-
-            Debug.Log("Connected to server");
-        }
-        catch(Exception e)
-        {
-            Debug.Log("Client connecting error : " + e.Message);
-
-            // Try connecting again and again
-            StartCoroutine(TryConnecting());
-        }
+ 
+        StartCoroutine(TryConnecting());
     }
+
     // Try connecting to server
     private IEnumerator TryConnecting()
     {
@@ -256,16 +240,17 @@ public class Client : MonoBehaviour
         tempPlay.playerName = name;
         tempPlay.rowPos = row;
         playerList.Add(tempPlay);
-
+        Debug.Log(name);
         // Check is it's mine
         if(name == MyName)
         {
             myPlayer = tempPlay;
+            return;
         }
-        else if(needFeedBack)
+        else if (name != MyName && needFeedBack)
         {
             // Send Feedback
-            string[] mass = new string[] { "SpawnMyPlayer", myPlayer.playerName, myPlayer.rowPos.ToString(), TheData.selectedChar.ToString(), BoolToString(false) };
+            string[] mass = new string[] { "SpawnMyPlayer", myPlayer.playerName, myPlayer.rowPos.ToString(), GameDataLoader.TheData.selectedChar.ToString(), BoolToString(false) };
             SendMassageClient(name, mass);
         }
     }

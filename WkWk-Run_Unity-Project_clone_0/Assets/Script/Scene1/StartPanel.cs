@@ -15,7 +15,7 @@ public class StartPanel : MonoBehaviour
     [SerializeField] private Text playerInRoom;
 
     // Waiting time
-    private float PlayerWaitingTime = 10f;
+    private float PlayerWaitingTime = 5f;
     private bool waitIsDone;
 
     // Count down time
@@ -41,7 +41,7 @@ public class StartPanel : MonoBehaviour
         manager = FindObjectOfType<GameManager>();
         network = FindObjectOfType<Client>();
 
-        //startManualButton.SetActive(false);
+        startManualButton.SetActive(false);
 
         if(RoomName != null)
         {
@@ -70,7 +70,8 @@ public class StartPanel : MonoBehaviour
         while (!manager.GameIsStarted)
         {
             // Check room condition
-            if (network.isMaster && network.PlayerCountInRoom() >= minPlayerInRoom && waitIsDone)
+            // network.PlayerCountInRoom() >= minPlayerInRoom
+            if (network.isMaster && waitIsDone)
             {
                 try
                 {

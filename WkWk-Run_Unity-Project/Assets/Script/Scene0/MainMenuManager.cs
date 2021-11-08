@@ -30,7 +30,7 @@ public class MainMenuManager : MonoBehaviour
         network = FindObjectOfType<Client>();
 
         // Load game data
-        theData = network.TheData;
+        theData = GameDataLoader.TheData;
 
         // Setting Panels
         connectingPanel.SetActive(true);

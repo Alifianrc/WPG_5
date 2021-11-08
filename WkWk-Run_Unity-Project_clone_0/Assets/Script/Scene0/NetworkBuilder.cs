@@ -6,7 +6,7 @@ public class NetworkBuilder : MonoBehaviour
 {
     [SerializeField] private GameObject NetworkClient;
 
-    private void Start()
+    private void Awake()
     {
         if (!FindObjectOfType<Client>())
         {

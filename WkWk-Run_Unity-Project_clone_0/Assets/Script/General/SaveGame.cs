@@ -37,7 +37,7 @@ public class SaveGame : MonoBehaviour
             // Debug.Log("File Loaded");
 
             // Just for testing
-            data.UserName = data.UserName + Random.Range(0, 100);
+            //data.UserName = data.UserName + Random.Range(0, 100);
 
             return data;
         }

@@ -31,7 +31,7 @@ public class ShopPanel : MonoBehaviour
     {
         manager = FindObjectOfType<MainMenuManager>();
         network = FindObjectOfType<Client>();
-        saveData = network.TheData;
+        saveData = GameDataLoader.TheData;
 
         coinText.text = saveData.Coin.ToString("n0");
         selectedText.text = saveData.characterName[saveData.selectedChar];

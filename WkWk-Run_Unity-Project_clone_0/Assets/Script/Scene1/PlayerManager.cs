@@ -87,7 +87,7 @@ public class PlayerManager : MonoBehaviour
             startPos = new Vector2(transform.position.x, transform.position.y);
             finishPoint = manager.FinishPoint;
             coinText = manager.coinText;
-            coinText.text = network.TheData.Coin.ToString("n0");
+            coinText.text = GameDataLoader.TheData.Coin.ToString("n0");
         }
         // Set Name
         nameText.text = playerName;
@@ -291,8 +291,8 @@ public class PlayerManager : MonoBehaviour
     }
     public void GetCoin(int value)
     {
-        network.TheData.Coin += value;
-        coinText.text = network.TheData.Coin.ToString("n0");
+        GameDataLoader.TheData.Coin += value;
+        coinText.text = GameDataLoader.TheData.Coin.ToString("n0");
     }
 
     // UI -----------------------------------------------------------------------------------
