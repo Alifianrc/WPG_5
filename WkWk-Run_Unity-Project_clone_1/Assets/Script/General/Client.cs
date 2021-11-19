@@ -11,7 +11,7 @@ public class Client : MonoBehaviour
     private TcpClient client;
     private NetworkStream networkStream;
     private int port = 3002;
-    public IPAddress ipAd = IPAddress.Parse("45.130.229.104");
+    public IPAddress ipAd = IPAddress.Parse("127.0.0.1");
     // 127.0.0.1
     // 45.130.229.104
 
@@ -131,7 +131,7 @@ public class Client : MonoBehaviour
         string decryptMassage = aesEncryption.Decrypt(massage);
 
         // Debugging
-        Debug.Log(decryptMassage);
+        //Debug.Log(decryptMassage);
 
         // receive format : Sender|Data1|Data2|...
         string[] data = decryptMassage.Split('|');
@@ -171,6 +171,17 @@ public class Client : MonoBehaviour
                 case "ExitRoom":
                     FindObjectOfType<GameManager>().OnExitRoom();
                     break;
+                case "Disconnect":
+                    foreach (PlayerManager a in playerList)
+                    {
+                        // Refresh player position
+                        if (a.playerName == data[2])
+                        {
+                            // Do something to disconnect player
+
+                        }
+                    }
+                    break;
                 default:
                     Debug.Log("Unreconized massage : " + decryptMassage);
                     break;
@@ -185,7 +196,7 @@ public class Client : MonoBehaviour
                     break;
                 case "SpawnPlatform":
                     int[] platformData = new int[] { int.Parse(data[2]), int.Parse(data[3]), int.Parse(data[4]), int.Parse(data[5]), int.Parse(data[6]), };
-                    FindObjectOfType<GameManager>().SpawnPlatformGames(platformData);
+                    FindObjectOfType<GameManager>().SpawnObstacle(platformData);
                     break;
                 case "SyncPlr":
                     foreach(PlayerManager a in playerList)
@@ -203,6 +214,23 @@ public class Client : MonoBehaviour
                     break;
                 case "ChangeRow":
                     ChangePlayerRow(data[2], int.Parse(data[3]));
+                    break;
+                case "SpawnCoin":
+                    FindObjectOfType<GameManager>().SpawnCoin(int.Parse(data[2]), int.Parse(data[3]));
+                    break;
+                case "SpawnBooster":
+                    FindObjectOfType<GameManager>().SpawnBooster(int.Parse(data[2]), int.Parse(data[3]), int.Parse(data[4]));
+                    break;
+                case "PlayerDead":
+                    foreach (PlayerManager a in playerList)
+                    {
+                        // Refresh player position
+                        if (a.playerName == data[2])
+                        {
+                            // Do something to dead player
+
+                        }
+                    }
                     break;
                 default:
                     Debug.Log("Unreconized massage : " + decryptMassage);

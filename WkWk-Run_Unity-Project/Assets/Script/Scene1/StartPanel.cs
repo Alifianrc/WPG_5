@@ -139,7 +139,7 @@ public class StartPanel : MonoBehaviour
         manager.GameIsStarted = true;
 
         // Begin Couretine
-        manager.StartSpawnPlatform();
+        manager.StartSpawning();
         manager.FindPlayers();
         network.StartSyncPlayer();
 

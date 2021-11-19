@@ -2792,6 +2792,7 @@ MonoBehaviour:
     type: 3}
   trapBomb: {fileID: 5619302375313537862, guid: 99dc0c47847ef18409e6e56a1cfb5acf,
     type: 3}
+  coin: {fileID: 577935608265791316, guid: 1d18efeb9741c394abd38e7069b1ecde, type: 3}
   rowPos:
   - {fileID: 451845253}
   - {fileID: 817574709}

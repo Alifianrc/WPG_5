@@ -38,6 +38,8 @@ public class GameManager : MonoBehaviour
     // Trap
     [SerializeField] private GameObject trapLava; // ID = 2
     [SerializeField] private GameObject trapBomb; // ID = 3
+    // Booster
+    [SerializeField] private GameObject coin;
 
     // Scaling
     private float scaleFix;
@@ -154,11 +156,15 @@ public class GameManager : MonoBehaviour
     }
 
     // Platform spaner -------------------------------------------------------------------------------------------------
-    public void StartSpawnPlatform()
+    public void StartSpawning()
     {
-        StartCoroutine(SpawnPlatformGames());
+        // Start spawning obstacle
+        StartCoroutine(SpawnObstacle());
+
+        // Start spawing coin
+        StartCoroutine(SpawnCoin());
     }
-    private IEnumerator SpawnPlatformGames()
+    private IEnumerator SpawnObstacle()
     {
         while (GameIsStarted)
         {
@@ -178,7 +184,7 @@ public class GameManager : MonoBehaviour
 
                 // Send to other client if host
                 network.SendMassageClient("All", massage);
-                SpawnPlatformGames(temp);
+                SpawnObstacle(temp);
             }
 
             // Alwasy spawn platform ground
@@ -190,7 +196,7 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(.7f);
         }
     }
-    public void SpawnPlatformGames(int[] platform)
+    public void SpawnObstacle(int[] platform)
     {
         // Spawn
         for (int i = 0; i < rowPos.Length; i++)
@@ -200,17 +206,17 @@ public class GameManager : MonoBehaviour
             if (platform[i] == 1)
             {
                 // Spawn water
-                temp = Instantiate(platformWater, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 10), Quaternion.identity);
+                temp = Instantiate(platformWater, new Vector3(rowPos[i].position.x, rowPos[i].position.y, -1), Quaternion.identity);
             }
             else if (platform[i] == 2)
             {
                 // Spawn bomb
-                temp = Instantiate(trapBomb, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 10), Quaternion.identity);
+                temp = Instantiate(trapBomb, new Vector3(rowPos[i].position.x, rowPos[i].position.y, -1), Quaternion.identity);
             }
             else if (platform[i] == 3)
             {
                 // Spawn lava
-                temp = Instantiate(trapLava, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 10), Quaternion.identity);
+                temp = Instantiate(trapLava, new Vector3(rowPos[i].position.x, rowPos[i].position.y, -1), Quaternion.identity);
             }
 
             if(temp != null)
@@ -223,10 +229,66 @@ public class GameManager : MonoBehaviour
             rowPos[i].position = new Vector3(rowPos[i].position.x, rowPos[i].position.y + rowDist, rowPos[i].position.z);
         }
     }
+    private IEnumerator SpawnCoin()
+    {
+        int coinCount = 0, rowCount = 0, delayRange;
+        int[] rowSelected = new int[5];
+        bool[] rowUsed = new bool[5];
+        float yPos = 8;
+        while (GameIsStarted)
+        {
+            if (platformSpawnPoint.position.y > rowPos[0].position.y && network.isMaster && FinishPoint.position.y > rowPos[0].position.y)
+            {
+                if(coinCount > 0)
+                {
+                    for(int i = 0; i < rowCount; i++)
+                    {
+                        string[] m = { "SpawnCoin", rowXPos[rowSelected[i]].ToString(), yPos.ToString()}; 
+                        network.SendMassageClient("All", m);
+                    }
+                    yPos++;
+                    coinCount--;
+                }
+                else
+                {
+                    for (int i = 0; i < rowUsed.Length; i++)
+                    {
+                        rowUsed[i] = false;
+                    }
+                    coinCount = Random.Range(5, 12);
+                    rowCount = Random.Range(1, 5);
+                    delayRange = Random.Range(5, 9);
+                    yPos += delayRange;
+                    for(int i = 0; i < rowCount; i++)
+                    {
+                        rowSelected[i] = Random.Range(0, 5);
+                        while (rowUsed[rowSelected[i]])
+                        {
+                            rowSelected[i] = Random.Range(0, 5);
+                        }
+                        rowUsed[rowSelected[i]] = true;
+                    }
+                }
+            }
+
+            yield return new WaitForSeconds(.5f);
+        }
+    }
+    public void SpawnCoin(int xPos, int yPos)
+    {
+        // Spawn
+        GameObject temp = Instantiate(coin, new Vector3(xPos, yPos, 1), Quaternion.identity);
+        // Re-scale
+        temp.transform.localScale = new Vector3(scaleFix - .3f, scaleFix - .3f, scaleFix - .3f);
+    }
     public void SpawnPlatformGround()
     {
         Instantiate(platformGround, platformSpawnPos, Quaternion.identity);
         platformSpawnPos = new Vector3(platformSpawnPos.x, platformSpawnPos.y + 10, platformSpawnPos.z);
+    }
+    public void SpawnBooster(int typeBoost, int xPos, int yPos)
+    {
+
     }
 
     // Game Level -----------------------------------------------------------------------------------------------------

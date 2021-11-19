@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Platform : MonoBehaviour
 {
-    [SerializeField] private string Name;
+    [SerializeField] private string PlatformName;
     private Transform destroyPoint;
 
     private GameManager manager;
@@ -24,6 +24,20 @@ public class Platform : MonoBehaviour
             // Destroy this object if it wasn't needed
             if(transform.position.y < destroyPoint.position.y)
             {
+                Destroy(gameObject);
+            }
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.tag == "Player")
+        {
+            if(PlatformName == "Coin")
+            {
+                // Add coin to player
+
+                // Destroy coin
                 Destroy(gameObject);
             }
         }

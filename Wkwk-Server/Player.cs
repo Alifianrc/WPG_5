@@ -165,8 +165,8 @@ namespace Wkwk_Server
                         switch (info[1])
                         {
                             case "SpawnPlatform":
-                                string[] mass = new string[] { "SpawnPlatform", info[2], info[3], info[4], info[5], info[6] };
-                                SendMassage("Client", "All", mass);
+                                string[] a = new string[] { "SpawnPlatform", info[2], info[3], info[4], info[5], info[6] };
+                                SendMassage("Client", "All", a);
                                 break;
                             case "StartGame":
                                 // Lock room
@@ -175,8 +175,16 @@ namespace Wkwk_Server
                                 Console.WriteLine(playerName + " : Start Game on Room " + myRoom.roomName);
                                 break;
                             case "ChangeRow":
-                                string[] massag = new string[] { "ChangeRow", playerName, info[2] };
-                                SendMassage("Client", "All", massag);
+                                string[] b = new string[] { "ChangeRow", playerName, info[2] };
+                                SendMassage("Client", "All", b);
+                                break;
+                            case "SpawnCoin":
+                                string[] c = new string[] { "SpawnCoin", info[2], info[3] };
+                                SendMassage("Client", "All", c);
+                                break;
+                            case "SpawnBooster":
+                                string[] d = new string[] { "SpawnBooster", info[2], info[3], info[4] };
+                                SendMassage("Client", "All", d);
                                 break;
                             default:
 
@@ -189,8 +197,12 @@ namespace Wkwk_Server
                         switch (info[1])
                         {
                             case "SyncPlr":
-                                string[] mass = new string[] { "SyncPlr", playerName, info[2], info[3] };
-                                SendMassage("Client", "AllES", mass);
+                                string[] a = new string[] { "SyncPlr", playerName, info[2], info[3] };
+                                SendMassage("Client", "AllES", a);
+                                break;
+                            case "PlayerDead":
+                                string[] b = new string[] { "PlayerDead", playerName, info[2], info[3] };
+                                SendMassage("Client", "AllES", b);
                                 break;
                             default:
 
@@ -532,6 +544,9 @@ namespace Wkwk_Server
         // Disconnect from server
         private void DisconnectFromServer()
         {
+            // Send Massage to other
+            string[] m = { "Disconnect", playerName };
+            SendMassage("Server", "AllES", m);
             // Print massage
             Console.WriteLine(playerName + " : Disconnected from server");
             isOnline = false;
