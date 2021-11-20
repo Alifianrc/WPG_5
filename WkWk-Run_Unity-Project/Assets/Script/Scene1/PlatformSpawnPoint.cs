@@ -10,9 +10,12 @@ public class PlatformSpawnPoint : MonoBehaviour
     private float maxSpeed = 10f;
     private float accSpeed = .2f;
 
+    private float levelStartPos;
+
     void Start()
     {
         manager = FindObjectOfType<GameManager>();
+        levelStartPos = 0;
     }
 
     // Update is called once per frame
@@ -25,6 +28,12 @@ public class PlatformSpawnPoint : MonoBehaviour
             if(speed <= maxSpeed)
             {
                 speed += accSpeed * Time.deltaTime;
+            }
+
+            if(transform.position.y > manager.LevelDistance + levelStartPos)
+            {
+                levelStartPos = transform.position.y;
+                manager.ObstacleLevel += 1;
             }
         }
     }

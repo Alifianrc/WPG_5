@@ -164,8 +164,8 @@ namespace Wkwk_Server
                     {
                         switch (info[1])
                         {
-                            case "SpawnPlatform":
-                                string[] a = new string[] { "SpawnPlatform", info[2], info[3], info[4], info[5], info[6] };
+                            case "SpawnObstacle":
+                                string[] a = new string[] { "SpawnObstacle", info[2], info[3], info[4], info[5], info[6] };
                                 SendMassage("Client", "All", a);
                                 break;
                             case "StartGame":
@@ -300,59 +300,80 @@ namespace Wkwk_Server
                 // Send to All Player in room
                 else if (target == "All")
                 {
-                    // send format : FromWho|Data1|Data2|...
-                    string data = fromWho;
-                    // Add data
-                    for (int i = 0; i < massage.Length; i++)
+                    try
                     {
-                        data += "|" + massage[i];
-                    }
+                        // send format : FromWho|Data1|Data2|...
+                        string data = fromWho;
+                        // Add data
+                        for (int i = 0; i < massage.Length; i++)
+                        {
+                            data += "|" + massage[i];
+                        }
 
-                    // Send to all
-                    for(int i = 0; i < myRoom.playerList.Count; i++)
+                        // Send to all
+                        for (int i = 0; i < myRoom.playerList.Count; i++)
+                        {
+                            SendSerializationDataHandler(myRoom.playerList[i].stream, myRoom.playerList[i].aesEncryption.Encrypt(data));
+                        }
+                    }
+                    catch (Exception e)
                     {
-                        SendSerializationDataHandler(myRoom.playerList[i].stream, myRoom.playerList[i].aesEncryption.Encrypt(data));
+                        Console.WriteLine("Send All error : " + e.Message);
                     }
                 }
 
                 // Send to All Player in room excep sender (this)
                 else if (target == "AllES")
                 {
-                    for (int i = 0; i < myRoom.playerList.Count; i++)
+                    try
                     {
-                        if (myRoom.playerList[i].playerName != playerName)
+                        for (int i = 0; i < myRoom.playerList.Count; i++)
                         {
-                            // send format : FromWho|Data1|Data2|...
-                            string data = fromWho;
-                            // Add data
-                            for (int j = 0; j < massage.Length; j++)
+                            if (myRoom.playerList[i].playerName != playerName)
                             {
-                                data += "|" + massage[j];
+                                // send format : FromWho|Data1|Data2|...
+                                string data = fromWho;
+                                // Add data
+                                for (int j = 0; j < massage.Length; j++)
+                                {
+                                    data += "|" + massage[j];
+                                }
+                                // Send massage
+                                SendSerializationDataHandler(myRoom.playerList[i].stream, myRoom.playerList[i].aesEncryption.Encrypt(data));
                             }
-                            // Send massage
-                            SendSerializationDataHandler(myRoom.playerList[i].stream, myRoom.playerList[i].aesEncryption.Encrypt(data));
                         }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Send AllES error : " + e.Message);
                     }
                 }
 
                 // Send to specific client
                 else
                 {
-                    for (int i = 0; i < myRoom.playerList.Count; i++)
+                    try
                     {
-                        if(myRoom.playerList[i].playerName == target)
+                        for (int i = 0; i < myRoom.playerList.Count; i++)
                         {
-                            // send format : FromWho|Data1|Data2|...
-                            string data = fromWho;
-                            // Add data
-                            for (int j = 0; j < massage.Length; j++)
+                            if (myRoom.playerList[i].playerName == target)
                             {
-                                data += "|" + massage[j];
-                            }
+                                // send format : FromWho|Data1|Data2|...
+                                string data = fromWho;
+                                // Add data
+                                for (int j = 0; j < massage.Length; j++)
+                                {
+                                    data += "|" + massage[j];
+                                }
 
-                            // Send massage
-                            SendSerializationDataHandler(myRoom.playerList[i].stream, myRoom.playerList[i].aesEncryption.Encrypt(data));
+                                // Send massage
+                                SendSerializationDataHandler(myRoom.playerList[i].stream, myRoom.playerList[i].aesEncryption.Encrypt(data));
+                            }
                         }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Send to " + target + " error : " + e.Message);
                     }
                 }
             }

@@ -333,7 +333,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 76567092}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 50, z: 0}
+  m_LocalPosition: {x: 0, y: 300, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1493983292}
@@ -2784,14 +2784,22 @@ MonoBehaviour:
   - {fileID: 7717347483904866979, guid: 3835b443598c75a42a3209e3753b64cf, type: 3}
   - {fileID: 8497394911996256088, guid: 17813811c93f7514b9bfcc5e9645b7a0, type: 3}
   platformSpawnPoint: {fileID: 1990641263}
-  platformGround: {fileID: 6145292933383824805, guid: dd8f36cb157b2be4482c22d112d7737b,
+  PlatformGround: {fileID: 6145292933383824805, guid: dd8f36cb157b2be4482c22d112d7737b,
     type: 3}
-  platformWater: {fileID: 5084839485785845942, guid: 7671c5362881a9e4c9ebfa3560d5928c,
-    type: 3}
-  trapLava: {fileID: 1209945425016937944, guid: 9e4a322beab92f545bfd5b73b9950079,
-    type: 3}
-  trapBomb: {fileID: 5619302375313537862, guid: 99dc0c47847ef18409e6e56a1cfb5acf,
-    type: 3}
+  Candi:
+  - {fileID: 6373717256572636467, guid: 621ea3d6b7b7536438c930b24b559544, type: 3}
+  House:
+  - {fileID: 5971877023454856226, guid: db2fb8a56dcbb744a9c84cad4e81eeba, type: 3}
+  - {fileID: 8978458728170126211, guid: 7f8c16580e82a654081d2c6ea548fe02, type: 3}
+  - {fileID: 6728810058930947692, guid: 765b2453db110dc4db1fed5eb8b6e6ef, type: 3}
+  Tree:
+  - {fileID: 7420418066016669429, guid: e8fcfe21e32d4784baa9d008491ae5da, type: 3}
+  - {fileID: 1177290782867703072, guid: 4cbbff2fb247ab54380c27255da3d600, type: 3}
+  Wall:
+  - {fileID: 428121701699062531, guid: b10e36a595e8e334291c672d7b0f95ed, type: 3}
+  - {fileID: 9041110869285874426, guid: fb17d417f3aa0574991170f8704ad2c7, type: 3}
+  - {fileID: 2101671440901818412, guid: eeaa05ab03a424d4d8135d29d5f47419, type: 3}
+  Water: []
   coin: {fileID: 577935608265791316, guid: 1d18efeb9741c394abd38e7069b1ecde, type: 3}
   rowPos:
   - {fileID: 451845253}

@@ -194,7 +194,7 @@ public class Client : MonoBehaviour
                 case "SpawnPlayer":
                     SpawnPlayer(data[2], int.Parse(data[3]), int.Parse(data[4]), StringToBool(data[5]));
                     break;
-                case "SpawnPlatform":
+                case "SpawnObstacle":
                     int[] platformData = new int[] { int.Parse(data[2]), int.Parse(data[3]), int.Parse(data[4]), int.Parse(data[5]), int.Parse(data[6]), };
                     FindObjectOfType<GameManager>().SpawnObstacle(platformData);
                     break;
@@ -204,7 +204,9 @@ public class Client : MonoBehaviour
                         // Refresh player position
                         if(a.playerName == data[2])
                         {
-                            a.gameObject.transform.position = new Vector2(int.Parse(data[3]), int.Parse(data[4]));
+                            Debug.Log("Sync Player : " + data[2]);
+                            // Sync player here
+                            //a.gameObject.transform.position = new Vector2(int.Parse(data[3]), int.Parse(data[4]));
                         }
                     }
                     break;

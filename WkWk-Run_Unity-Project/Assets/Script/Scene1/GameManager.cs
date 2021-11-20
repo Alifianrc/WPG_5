@@ -32,12 +32,14 @@ public class GameManager : MonoBehaviour
     private Vector3 platformSpawnPos;
 
     // Platform
-    [SerializeField] private GameObject platformGround; // ID = 0
-    [SerializeField] private GameObject platformWater; // ID = 1
-    private float randomPlatfromValue;
-    // Trap
-    [SerializeField] private GameObject trapLava; // ID = 2
-    [SerializeField] private GameObject trapBomb; // ID = 3
+    [SerializeField] private GameObject PlatformGround;
+    // Obstacle
+    public int ObstacleLevel { get; set; }
+    [SerializeField] private GameObject[] Candi; // ID = 1
+    [SerializeField] private GameObject[] House; // ID = 2
+    [SerializeField] private GameObject[] Tree;  // ID = 3
+    [SerializeField] private GameObject[] Wall;  // ID = 4
+    [SerializeField] private GameObject[] Water; // ID = 5
     // Booster
     [SerializeField] private GameObject coin;
 
@@ -50,7 +52,7 @@ public class GameManager : MonoBehaviour
 
     // Level value
     public int GameLevel { get; private set; }
-    public int LevelDistance = 80;
+    public float LevelDistance;
 
     // All Player position
     [SerializeField] GameObject[] playersOrder;
@@ -69,9 +71,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Text gameOverPanelCoin;
     [SerializeField] private Text gameOverPanelPlayerOrder;
     [SerializeField] public Sprite[] characterSpriteFace;
-
-    // Leveling
-    public int levelDistance { get; private set; }
 
     // Network
     private Client network;
@@ -109,8 +108,12 @@ public class GameManager : MonoBehaviour
         float width = Camera.main.orthographicSize * 2.0f * Screen.width / Screen.height;
         scaleFix = width / rowCount;
 
-        // Set Random value in %
-        randomPlatfromValue = 95;
+        // Obstacle level
+        ObstacleLevel = 0;
+
+        // Game level
+        GameLevel = 0;
+        LevelDistance = FinishPoint.position.y / 5;
 
         // Spawn Player
         network.SendMassageClient("Server", "SpawnPlayer|" + GameDataLoader.TheData.selectedChar);
@@ -143,7 +146,7 @@ public class GameManager : MonoBehaviour
             // Create platform
             if (platformSpawnPos.y < platformSpawnPoint.position.y)
             {
-                Instantiate(platformGround, platformSpawnPos, Quaternion.identity);
+                Instantiate(PlatformGround, platformSpawnPos, Quaternion.identity);
                 platformSpawnPos = new Vector3(platformSpawnPos.x, platformSpawnPos.y + 10, platformSpawnPos.z);
             }
 
@@ -166,34 +169,200 @@ public class GameManager : MonoBehaviour
     }
     private IEnumerator SpawnObstacle()
     {
+        int gap = 0;
+
         while (GameIsStarted)
         {
             // Check spawn position and if this is master
-            if (platformSpawnPoint.position.y > rowPos[0].position.y && network.isMaster)
+            if (platformSpawnPoint.position.y > rowPos[0].position.y && network.isMaster && FinishPoint.position.y > rowPos[0].position.y)
             {
                 // Preparing massage data
                 string[] massage = new string[(int)rowCount + 1];
-                massage[0] = "SpawnPlatform";
+                massage[0] = "SpawnObstacle";
                 
-                // Spawn here
-                int[] temp = new int[(int)rowCount];
-                for (int i = 0; i < rowCount; i++)
+                if(gap <= 0)
                 {
-                    massage[i + 1] = "0";
+                    // Reste Gap
+                    gap = Random.Range(6, 13);
+                    // Spawn here
+                    if (ObstacleLevel == 0)
+                    {
+                        // Spawn Candi
+                        int obsCount = Random.Range(1, 3);
+                        if (obsCount == 1)
+                        {
+                            int ranPos = Random.Range(0, 5);
+                            for(int i = 0; i < rowCount; i++)
+                            {
+                                if(i == ranPos)
+                                {
+                                    massage[i + 1] = "1";
+                                }
+                                else
+                                {
+                                    massage[i + 1] = "0";
+                                }
+                            }
+                        }
+                        else if (obsCount == 2)
+                        {
+                            for (int i = 0; i < rowCount; i++)
+                            {
+                                if (i == 0 || i == 4)
+                                {
+                                    massage[i + 1] = "1";
+                                }
+                                else
+                                {
+                                    massage[i + 1] = "0";
+                                }
+                            }
+                        }
+                    }
+                    else if (ObstacleLevel == 1)
+                    {
+                        // Spawn Tree
+                        int obsCount = Random.Range(1, 3);
+                        if (obsCount == 1)
+                        {
+                            int ranPos = Random.Range(0, 5);
+                            for (int i = 0; i < rowCount; i++)
+                            {
+                                if (i == ranPos)
+                                {
+                                    massage[i + 1] = "3";
+                                }
+                                else
+                                {
+                                    massage[i + 1] = "0";
+                                }
+                            }
+                        }
+                        else if (obsCount == 2)
+                        {
+                            for (int i = 0; i < rowCount; i++)
+                            {
+                                if (i == 0 || i == 4)
+                                {
+                                    massage[i + 1] = "3";
+                                }
+                                else
+                                {
+                                    massage[i + 1] = "0";
+                                }
+                            }
+                        }
+                    }
+                    else if (ObstacleLevel == 2)
+                    {
+                        // Spawn House
+                        int obsCount = Random.Range(1, 3);
+                        if (obsCount == 1)
+                        {
+                            int ranPos = Random.Range(0, 5);
+                            for (int i = 0; i < rowCount; i++)
+                            {
+                                if (i == ranPos)
+                                {
+                                    massage[i + 1] = "2";
+                                }
+                                else
+                                {
+                                    massage[i + 1] = "0";
+                                }
+                            }
+                        }
+                        else if (obsCount == 2)
+                        {
+                            for (int i = 0; i < rowCount; i++)
+                            {
+                                if (i == 0 || i == 4)
+                                {
+                                    massage[i + 1] = "2";
+                                }
+                                else
+                                {
+                                    massage[i + 1] = "0";
+                                }
+                            }
+                        }
+                    }
+                    else if (ObstacleLevel == 3)
+                    {
+                        // Spawn Wall
+                        int ranPos = Random.Range(0, 5);
+                        for (int i = 0; i < rowCount; i++)
+                        {
+                            if (i == ranPos && ranPos != 2)
+                            {
+                                massage[i + 1] = "4";
+                            }
+                            else if (i == ranPos && ranPos == 2)
+                            {
+                                massage[1] = "4";
+                            }
+                            else
+                            {
+                                massage[i + 1] = "0";
+                            }
+                        }
+                    }
+                    else if (ObstacleLevel == 4)
+                    {
+                        // Spawn Water
+                        // Spawn Candi
+                        int obsCount = Random.Range(1, 3);
+                        if (obsCount == 1)
+                        {
+                            int ranPos = Random.Range(0, 5);
+                            for (int i = 0; i < rowCount; i++)
+                            {
+                                if (i == ranPos)
+                                {
+                                    massage[i + 1] = "5";
+                                }
+                                else
+                                {
+                                    massage[i + 1] = "0";
+                                }
+                            }
+                        }
+                        else if (obsCount == 2)
+                        {
+                            for (int i = 0; i < rowCount; i++)
+                            {
+                                if (i == 0 || i == 4)
+                                {
+                                    massage[i + 1] = "5";
+                                }
+                                else
+                                {
+                                    massage[i + 1] = "0";
+                                }
+                            }
+                        }
+                    }
                 }
-
+                else
+                {
+                    gap--;
+                    for(int i = 0; i < rowCount; i++)
+                    {
+                        massage[i + 1] = "0";
+                    }
+                }
+               
                 // Send to other client if host
                 network.SendMassageClient("All", massage);
-                SpawnObstacle(temp);
             }
 
-            // Alwasy spawn platform ground
+            // Always spawn platform ground
             if (platformSpawnPos.y < platformSpawnPoint.position.y)
             {
                 SpawnPlatformGround();
             }
 
-            yield return new WaitForSeconds(.7f);
+            yield return new WaitForSeconds(.03f);
         }
     }
     public void SpawnObstacle(int[] platform)
@@ -205,28 +374,38 @@ public class GameManager : MonoBehaviour
             GameObject temp = null;
             if (platform[i] == 1)
             {
-                // Spawn water
-                temp = Instantiate(platformWater, new Vector3(rowPos[i].position.x, rowPos[i].position.y, -1), Quaternion.identity);
+                // Spawn Candi
+                int randCandi = Random.Range(0, Candi.Length);
+                temp = Instantiate(Candi[randCandi], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
             }
             else if (platform[i] == 2)
             {
-                // Spawn bomb
-                temp = Instantiate(trapBomb, new Vector3(rowPos[i].position.x, rowPos[i].position.y, -1), Quaternion.identity);
+                // Spawn House
+                int randHouse = Random.Range(0, House.Length);
+                temp = Instantiate(House[randHouse], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
             }
             else if (platform[i] == 3)
             {
-                // Spawn lava
-                temp = Instantiate(trapLava, new Vector3(rowPos[i].position.x, rowPos[i].position.y, -1), Quaternion.identity);
+                // Spawn Tree
+                int randTree = Random.Range(0, Tree.Length);
+                temp = Instantiate(Tree[randTree], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
             }
-
-            if(temp != null)
+            else if (platform[i] == 4)
             {
-                // Re-scale
-                temp.transform.localScale = new Vector3(scaleFix, scaleFix, scaleFix);
+                // Spawn Wall
+                int randWall = Random.Range(0, Wall.Length);
+                temp = Instantiate(Wall[randWall], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+            }
+            else if (platform[i] == 5)
+            {
+                // Spawn Water
+                int randWater = Random.Range(0, Water.Length);
+                temp = Instantiate(Water[randWater], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
             }
            
             // relocate row position
             rowPos[i].position = new Vector3(rowPos[i].position.x, rowPos[i].position.y + rowDist, rowPos[i].position.z);
+            //Debug.Log("Y Spawn Pos : " + rowPos[i].position.y);
         }
     }
     private IEnumerator SpawnCoin()
@@ -271,7 +450,7 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-            yield return new WaitForSeconds(.5f);
+            yield return new WaitForSeconds(.05f);
         }
     }
     public void SpawnCoin(int xPos, int yPos)
@@ -283,7 +462,7 @@ public class GameManager : MonoBehaviour
     }
     public void SpawnPlatformGround()
     {
-        Instantiate(platformGround, platformSpawnPos, Quaternion.identity);
+        Instantiate(PlatformGround, platformSpawnPos, Quaternion.identity);
         platformSpawnPos = new Vector3(platformSpawnPos.x, platformSpawnPos.y + 10, platformSpawnPos.z);
     }
     public void SpawnBooster(int typeBoost, int xPos, int yPos)

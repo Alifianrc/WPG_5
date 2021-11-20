@@ -66,7 +66,7 @@ public class PlayerManager : MonoBehaviour
         manager = FindObjectOfType<GameManager>();
         network = FindObjectOfType<Client>();
         finishPoint = manager.FinishPoint;
-        levelDistance = manager.levelDistance;
+        levelDistance = manager.LevelDistance;
 
         // Animation
         try
@@ -243,7 +243,7 @@ public class PlayerManager : MonoBehaviour
     }
 
     // Traps ---------------------------------------------------------------------------------------------------------------
-    public void GetTrap()
+    public void SlowMovement()
     {
         if (!trapEffectIsActive && !isDead)
         {
@@ -266,7 +266,7 @@ public class PlayerManager : MonoBehaviour
             playerSwipeSpeed = playerDefaultSwipeSpeed;
         }
     }
-    public void GetLava()
+    public void Dead()
     {
         if (!isDead)
         {
