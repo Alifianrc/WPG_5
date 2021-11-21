@@ -358,12 +358,12 @@ public class GameManager : MonoBehaviour
             }
 
             // Always spawn platform ground
-            if (platformSpawnPos.y < platformSpawnPoint.position.y)
+            if (platformSpawnPos.y < platformSpawnPoint.position.y && FinishPoint.position.y > rowPos[0].position.y)
             {
                 SpawnPlatformGround();
             }
 
-            yield return new WaitForSeconds(.03f);
+            yield return new WaitForSeconds(.3f);
         }
     }
     public void SpawnObstacle(int[] platform)
@@ -458,7 +458,7 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-            yield return new WaitForSeconds(.05f);
+            yield return new WaitForSeconds(.5f);
         }
     }
     public void SpawnCoin(int xPos, int yPos)

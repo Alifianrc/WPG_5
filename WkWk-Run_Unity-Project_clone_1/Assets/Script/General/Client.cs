@@ -119,6 +119,16 @@ public class Client : MonoBehaviour
         // Save the new key
         aesEncryption.SetKey(aesEncryption.ConvertStringToKey(aesKey));
 
+        // Wait other massage
+        answer = formatter.Deserialize(networkStream) as string;
+        string order = aesEncryption.Decrypt(answer);
+        string[] data = order.Split('|');
+        if(data[0] == "Server" && data[1] == "WHORU")
+        {
+            formatter.Serialize(networkStream, aesEncryption.Encrypt("Server|" + MyName));
+        }
+        
+
         // Ready to communicate
         isReady = true;
         isConnected = true;
@@ -128,20 +138,22 @@ public class Client : MonoBehaviour
     private void ReceiveMassage(string massage)
     {
         // Decrypt
-        string decryptMassage = aesEncryption.Decrypt(massage);
+        // string massage = aesEncryption.Decrypt(massage);
 
         // Debugging
-        //Debug.Log(decryptMassage);
+        //Debug.Log(massage);
 
         // receive format : Sender|Data1|Data2|...
-        string[] data = decryptMassage.Split('|');
+        string[] data = massage.Split('|');
         if(data[0] == "Server")
         {
             switch (data[1]) 
             {
                 case "WHORU":
                     // Send player name
-                    SendMassageClient("Server", MyName);
+                    //BinaryFormatter format = new BinaryFormatter();
+                    //format.Serialize(networkStream, aesEncryption.Encrypt("Server|" + MyName));
+                    //SendMassageClient("Server", MyName);
                     break;
                 case "SYNA":
                     // Connection check success
@@ -183,7 +195,7 @@ public class Client : MonoBehaviour
                     }
                     break;
                 default:
-                    Debug.Log("Unreconized massage : " + decryptMassage);
+                    Debug.Log("Unreconized massage : " + massage);
                     break;
             }
         }
@@ -234,7 +246,7 @@ public class Client : MonoBehaviour
                     }
                     break;
                 default:
-                    Debug.Log("Unreconized massage : " + decryptMassage);
+                    Debug.Log("Unreconized massage : " + massage);
                     break;
             }
         }
@@ -258,7 +270,8 @@ public class Client : MonoBehaviour
         }
 
         BinaryFormatter formatter = new BinaryFormatter();
-        formatter.Serialize(networkStream, aesEncryption.Encrypt(data));
+        formatter.Serialize(networkStream, data);
+        //formatter.Serialize(networkStream, aesEncryption.Encrypt(data));
     }
 
     // General Method ------------------------------------------------------------------------------------------
