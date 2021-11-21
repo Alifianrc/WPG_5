@@ -8,11 +8,13 @@ public class Obstacle : MonoBehaviour
     private Transform destroyPoint;
 
     private GameManager manager;
+    private Client network;
 
     // Start is called before the first frame update
     void Start()
     {
         manager = FindObjectOfType<GameManager>();
+        network = FindObjectOfType<Client>();
         destroyPoint = FindObjectOfType<CameraFollow>().PlatformDestroyerPoint;
     }
 
@@ -33,11 +35,23 @@ public class Obstacle : MonoBehaviour
     {
         if (collision.collider.tag == "Player")
         {
-            Debug.Log("Player Dead");
+            PlayerManager player = collision.gameObject.GetComponent<PlayerManager>();
+            if(player.playerName == network.MyName)
+            {
+                player.Dead();
+            }
         }
         else
         {
             Debug.Log("Collision Obstacle : " + collision.collider.tag);
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(collision.tag == "Player" && PlatformName == "Water")
+        {
+            Debug.Log("Swimming");
         }
     }
 }

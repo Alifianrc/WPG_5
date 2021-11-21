@@ -2797,9 +2797,9 @@ MonoBehaviour:
   - {fileID: 1177290782867703072, guid: 4cbbff2fb247ab54380c27255da3d600, type: 3}
   Wall:
   - {fileID: 428121701699062531, guid: b10e36a595e8e334291c672d7b0f95ed, type: 3}
+  Water:
   - {fileID: 9041110869285874426, guid: fb17d417f3aa0574991170f8704ad2c7, type: 3}
   - {fileID: 2101671440901818412, guid: eeaa05ab03a424d4d8135d29d5f47419, type: 3}
-  Water: []
   coin: {fileID: 577935608265791316, guid: 1d18efeb9741c394abd38e7069b1ecde, type: 3}
   rowPos:
   - {fileID: 451845253}
@@ -2807,7 +2807,6 @@ MonoBehaviour:
   - {fileID: 1134580964}
   - {fileID: 1259883846}
   - {fileID: 1874792431}
-  LevelDistance: 80
   playersOrder: []
   FinishPoint: {fileID: 76567093}
   PlayerSlider: {fileID: 1480561817}

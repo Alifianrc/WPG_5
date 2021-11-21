@@ -1,8 +1,7 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -35,6 +34,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject PlatformGround;
     // Obstacle
     public int ObstacleLevel { get; set; }
+    private float LevelObstacleDistance;
     [SerializeField] private GameObject[] Candi; // ID = 1
     [SerializeField] private GameObject[] House; // ID = 2
     [SerializeField] private GameObject[] Tree;  // ID = 3
@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
 
     // Level value
     public int GameLevel { get; private set; }
-    public float LevelDistance;
+    public float LevelDistance { get; private set; }
 
     // All Player position
     [SerializeField] GameObject[] playersOrder;
@@ -108,12 +108,13 @@ public class GameManager : MonoBehaviour
         float width = Camera.main.orthographicSize * 2.0f * Screen.width / Screen.height;
         scaleFix = width / rowCount;
 
-        // Obstacle level
-        ObstacleLevel = 0;
-
         // Game level
         GameLevel = 0;
         LevelDistance = FinishPoint.position.y / 5;
+
+        // Obstacle level
+        ObstacleLevel = 0;
+        LevelObstacleDistance = LevelDistance;
 
         // Spawn Player
         network.SendMassageClient("Server", "SpawnPlayer|" + GameDataLoader.TheData.selectedChar);
@@ -403,8 +404,15 @@ public class GameManager : MonoBehaviour
                 temp = Instantiate(Water[randWater], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
             }
            
-            // relocate row position
+            // Relocate row position
             rowPos[i].position = new Vector3(rowPos[i].position.x, rowPos[i].position.y + rowDist, rowPos[i].position.z);
+            // Check obstacle level
+            if(rowPos[i].position.y > LevelObstacleDistance)
+            {
+                ObstacleLevel++;
+                LevelObstacleDistance += LevelDistance;
+            }
+
             //Debug.Log("Y Spawn Pos : " + rowPos[i].position.y);
         }
     }

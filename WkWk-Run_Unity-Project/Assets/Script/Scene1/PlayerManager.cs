@@ -29,6 +29,7 @@ public class PlayerManager : MonoBehaviour
     private Vector2 startPos;
     [SerializeField] private Text nameText;
     private Text coinText;
+    [SerializeField] private GameObject disconnectLogo;
 
     // Order in race
     public int PlayerOrder { get; private set; }
@@ -56,6 +57,9 @@ public class PlayerManager : MonoBehaviour
     // Increase speed
     private float levelStartPos;
     private float levelDistance;
+
+    // Network
+    bool isDisconnect;
 
     // Audio
     private AudioManager audio;
@@ -102,13 +106,16 @@ public class PlayerManager : MonoBehaviour
 
         // Set Start position
         transform.position = new Vector3(manager.rowXPos[rowPos], -2, 0);
+
+        // Network 
+        isDisconnect = false;
     }
 
     
     void Update()
     {
         // If the game is started
-        if (manager.GameIsStarted)
+        if (manager.GameIsStarted && !isDisconnect && !isDead)
         {
             // Player start running
             transform.position = new Vector2(transform.position.x, transform.position.y + (playerSpeed * Time.deltaTime));
@@ -268,6 +275,12 @@ public class PlayerManager : MonoBehaviour
     }
     public void Dead()
     {
+        string[] a = { "PlayerDead", transform.position.x.ToString(), transform.position.y.ToString() };
+        network.SendMassageClient("AllES", a);
+        DeadMethod();
+    }
+    public void DeadMethod()
+    {
         if (!isDead)
         {
             //audio.Stop("Run");
@@ -294,7 +307,29 @@ public class PlayerManager : MonoBehaviour
         GameDataLoader.TheData.Coin += value;
         coinText.text = GameDataLoader.TheData.Coin.ToString("n0");
     }
+    public void Disconnected()
+    {
+        Color dark = new Color(80 / 255f, 80 / 255f, 80 / 255f);
 
+        if (playerName == network.MyName)
+        {
+
+        }
+        else
+        {
+            isDisconnect = true;
+            gameObject.GetComponent<SpriteRenderer>().color = dark;
+            disconnectLogo.SetActive(true);
+            playerSpeed = 0;
+        }
+    }
+    public void SyncPos(float x, float y)
+    {
+        if(Mathf.Abs(gameObject.transform.position.y - y) > .8f)
+        {
+            transform.position = new Vector2(x, y);
+        }
+    }
     // UI -----------------------------------------------------------------------------------
     public void ChangePlayerOrder(int value)
     {

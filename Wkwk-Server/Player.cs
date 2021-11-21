@@ -327,19 +327,22 @@ namespace Wkwk_Server
                 {
                     try
                     {
-                        for (int i = 0; i < myRoom.playerList.Count; i++)
+                        if(myRoom != null)
                         {
-                            if (myRoom.playerList[i].playerName != playerName)
+                            for (int i = 0; i < myRoom.playerList.Count; i++)
                             {
-                                // send format : FromWho|Data1|Data2|...
-                                string data = fromWho;
-                                // Add data
-                                for (int j = 0; j < massage.Length; j++)
+                                if (myRoom.playerList[i].playerName != playerName)
                                 {
-                                    data += "|" + massage[j];
+                                    // send format : FromWho|Data1|Data2|...
+                                    string data = fromWho;
+                                    // Add data
+                                    for (int j = 0; j < massage.Length; j++)
+                                    {
+                                        data += "|" + massage[j];
+                                    }
+                                    // Send massage
+                                    SendSerializationDataHandler(myRoom.playerList[i].stream, myRoom.playerList[i].aesEncryption.Encrypt(data));
                                 }
-                                // Send massage
-                                SendSerializationDataHandler(myRoom.playerList[i].stream, myRoom.playerList[i].aesEncryption.Encrypt(data));
                             }
                         }
                     }

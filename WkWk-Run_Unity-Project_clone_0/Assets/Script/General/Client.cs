@@ -178,7 +178,7 @@ public class Client : MonoBehaviour
                         if (a.playerName == data[2])
                         {
                             // Do something to disconnect player
-
+                            a.Disconnected();
                         }
                     }
                     break;
@@ -204,9 +204,8 @@ public class Client : MonoBehaviour
                         // Refresh player position
                         if(a.playerName == data[2])
                         {
-                            Debug.Log("Sync Player : " + data[2]);
-                            // Sync player here
-                            //a.gameObject.transform.position = new Vector2(int.Parse(data[3]), int.Parse(data[4]));
+                            Debug.Log("Sync Player : " + data[2] + " " + float.Parse(data[3]) + " " + float.Parse(data[4]));
+                            a.SyncPos(float.Parse(data[3]), float.Parse(data[4]));
                         }
                     }
                     break;
@@ -230,7 +229,7 @@ public class Client : MonoBehaviour
                         if (a.playerName == data[2])
                         {
                             // Do something to dead player
-
+                            a.DeadMethod();
                         }
                     }
                     break;

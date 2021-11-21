@@ -11,11 +11,11 @@ GameObject:
   - component: {fileID: 7286282325732513327}
   - component: {fileID: 8771504188293745924}
   - component: {fileID: 7821448839579607767}
+  - component: {fileID: 8756646337395683934}
   - component: {fileID: 917085398964824433}
   - component: {fileID: 1094904055224525892}
   - component: {fileID: 6095245673254632048}
   - component: {fileID: 5026682788305498826}
-  - component: {fileID: 8756646337395683934}
   m_Layer: 10
   m_Name: Candi_1
   m_TagString: Obstacle
@@ -100,6 +100,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PlatformName: Candi
+--- !u!50 &8756646337395683934
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6373717256572636467}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 1
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 7
 --- !u!61 &917085398964824433
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -204,24 +225,3 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.5867649, y: 2.3778062}
   m_EdgeRadius: 0
---- !u!50 &8756646337395683934
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6373717256572636467}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 1
-  m_GravityScale: 0
-  m_Material: {fileID: 0}
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 7
