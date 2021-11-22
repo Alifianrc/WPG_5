@@ -6,9 +6,7 @@ public class PlatformSpawnPoint : MonoBehaviour
 {
     private GameManager manager;
 
-    private float speed = 5f;
-    private float maxSpeed = 10f;
-    private float accSpeed = .2f;
+    private float speed = 8f;
 
     void Start()
     {
@@ -19,13 +17,9 @@ public class PlatformSpawnPoint : MonoBehaviour
     void Update()
     {
         // Only move when game is on
-        if(manager.GameIsStarted && !manager.GameIsFinished)
+        if(manager.PlatformSpawningIsStarted && !manager.GameIsFinished && transform.position.y < manager.FinishPoint.position.y + 22)
         {
-            transform.position = new Vector2(transform.position.x, transform.position.y + (speed * Time.deltaTime));
-            if (speed <= maxSpeed)
-            {
-                speed += accSpeed * Time.deltaTime;
-            }            
+            transform.position = new Vector2(transform.position.x, transform.position.y + (speed * Time.deltaTime));     
         }
     }
 }

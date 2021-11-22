@@ -156,7 +156,8 @@ namespace Wkwk_Server
                 {
                     // Format received : ToWho|Data1|Data2|... 
                     BinaryFormatter formatter = new BinaryFormatter();
-                    string data = aesEncryption.Decrypt(formatter.Deserialize(stream) as string);
+                    //string data = aesEncryption.Decrypt(formatter.Deserialize(stream) as string);
+                    string data = formatter.Deserialize(stream) as string;
                     string[] info = data.Split("|");
 
                     // Send data to all
@@ -294,7 +295,7 @@ namespace Wkwk_Server
                         data += "|" + massage[i];
                     }
 
-                    SendSerializationDataHandler(stream, aesEncryption.Encrypt(data));
+                    SendSerializationDataHandler(stream, data);
                 }
 
                 // Send to All Player in room
@@ -313,7 +314,7 @@ namespace Wkwk_Server
                         // Send to all
                         for (int i = 0; i < myRoom.playerList.Count; i++)
                         {
-                            SendSerializationDataHandler(myRoom.playerList[i].stream, myRoom.playerList[i].aesEncryption.Encrypt(data));
+                            SendSerializationDataHandler(myRoom.playerList[i].stream, data);
                         }
                     }
                     catch (Exception e)
@@ -341,7 +342,7 @@ namespace Wkwk_Server
                                         data += "|" + massage[j];
                                     }
                                     // Send massage
-                                    SendSerializationDataHandler(myRoom.playerList[i].stream, myRoom.playerList[i].aesEncryption.Encrypt(data));
+                                    SendSerializationDataHandler(myRoom.playerList[i].stream, data);
                                 }
                             }
                         }
@@ -370,7 +371,7 @@ namespace Wkwk_Server
                                 }
 
                                 // Send massage
-                                SendSerializationDataHandler(myRoom.playerList[i].stream, myRoom.playerList[i].aesEncryption.Encrypt(data));
+                                SendSerializationDataHandler(myRoom.playerList[i].stream, data);
                             }
                         }
                     }
@@ -465,7 +466,7 @@ namespace Wkwk_Server
                     SendMassage("Server", playerName, "CreatedRoom");
 
                     // Print massage in server
-                    Console.WriteLine(playerName + " : Joined room " + myRoom.roomName);
+                    Console.WriteLine(playerName + " : Created room " + myRoom.roomName);
 
                     return;
                 }

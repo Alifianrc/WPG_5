@@ -20,7 +20,7 @@ public class StartPanel : MonoBehaviour
 
     // Count down time
     [SerializeField] private Text startText;
-    [SerializeField] private float countDownTime = 4f;
+    private float countDownTime = 6f;
     private float startTime;
 
     // Minimal players in room
@@ -108,6 +108,7 @@ public class StartPanel : MonoBehaviour
     public void StartGame()
     {
         // Start the games
+        manager.StartSpawning();
 
         // Set Panel
         Destroy(waitingPlayerPanel);
@@ -139,7 +140,6 @@ public class StartPanel : MonoBehaviour
         manager.GameIsStarted = true;
 
         // Begin Couretine
-        manager.StartSpawning();
         manager.FindPlayers();
         network.StartSyncPlayer();
 

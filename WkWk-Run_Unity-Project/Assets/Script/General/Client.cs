@@ -11,7 +11,7 @@ public class Client : MonoBehaviour
     private TcpClient client;
     private NetworkStream networkStream;
     private int port = 3002;
-    public IPAddress ipAd = IPAddress.Parse("127.0.0.1");
+    public IPAddress ipAd = IPAddress.Parse("45.130.229.104");
     // 127.0.0.1
     // 45.130.229.104
 
@@ -32,7 +32,7 @@ public class Client : MonoBehaviour
     [SerializeField] public bool isMaster;
 
     // All players (in room)
-    private List<PlayerManager> playerList;
+    private List<PlayerManager> playerListInRoom;
     private PlayerManager myPlayer;
 
     RsaEncryption rsaEncryption;
@@ -47,7 +47,7 @@ public class Client : MonoBehaviour
 
         client = new TcpClient();
         checkCountDown = CheckTime;
-        playerList = new List<PlayerManager>();
+        playerListInRoom = new List<PlayerManager>();
 
         rsaEncryption = new RsaEncryption();
         aesEncryption = new AesEncryption();
@@ -119,6 +119,16 @@ public class Client : MonoBehaviour
         // Save the new key
         aesEncryption.SetKey(aesEncryption.ConvertStringToKey(aesKey));
 
+        // Wait other massage
+        answer = formatter.Deserialize(networkStream) as string;
+        string order = aesEncryption.Decrypt(answer);
+        string[] data = order.Split('|');
+        if(data[0] == "Server" && data[1] == "WHORU")
+        {
+            formatter.Serialize(networkStream, aesEncryption.Encrypt("Server|" + MyName));
+        }
+        
+
         // Ready to communicate
         isReady = true;
         isConnected = true;
@@ -128,20 +138,22 @@ public class Client : MonoBehaviour
     private void ReceiveMassage(string massage)
     {
         // Decrypt
-        string decryptMassage = aesEncryption.Decrypt(massage);
+        // string massage = aesEncryption.Decrypt(massage);
 
         // Debugging
-        //Debug.Log(decryptMassage);
+        //Debug.Log(massage);
 
         // receive format : Sender|Data1|Data2|...
-        string[] data = decryptMassage.Split('|');
+        string[] data = massage.Split('|');
         if(data[0] == "Server")
         {
             switch (data[1]) 
             {
                 case "WHORU":
                     // Send player name
-                    SendMassageClient("Server", MyName);
+                    //BinaryFormatter format = new BinaryFormatter();
+                    //format.Serialize(networkStream, aesEncryption.Encrypt("Server|" + MyName));
+                    //SendMassageClient("Server", MyName);
                     break;
                 case "SYNA":
                     // Connection check success
@@ -169,10 +181,17 @@ public class Client : MonoBehaviour
                     isMaster = true;
                     break;
                 case "ExitRoom":
+                    // Reset data
+                    playerListInRoom = new List<PlayerManager>();
+                    isMaster = false;
+                    myPlayer = null;
+                    roomName = "";
+
+                    // Reload scene menu
                     FindObjectOfType<GameManager>().OnExitRoom();
                     break;
                 case "Disconnect":
-                    foreach (PlayerManager a in playerList)
+                    foreach (PlayerManager a in playerListInRoom)
                     {
                         // Refresh player position
                         if (a.playerName == data[2])
@@ -183,7 +202,7 @@ public class Client : MonoBehaviour
                     }
                     break;
                 default:
-                    Debug.Log("Unreconized massage : " + decryptMassage);
+                    Debug.Log("Unreconized massage : " + massage);
                     break;
             }
         }
@@ -199,7 +218,7 @@ public class Client : MonoBehaviour
                     FindObjectOfType<GameManager>().SpawnObstacle(platformData);
                     break;
                 case "SyncPlr":
-                    foreach(PlayerManager a in playerList)
+                    foreach(PlayerManager a in playerListInRoom)
                     {
                         // Refresh player position
                         if(a.playerName == data[2])
@@ -223,7 +242,7 @@ public class Client : MonoBehaviour
                     FindObjectOfType<GameManager>().SpawnBooster(int.Parse(data[2]), int.Parse(data[3]), int.Parse(data[4]));
                     break;
                 case "PlayerDead":
-                    foreach (PlayerManager a in playerList)
+                    foreach (PlayerManager a in playerListInRoom)
                     {
                         // Refresh player position
                         if (a.playerName == data[2])
@@ -234,7 +253,7 @@ public class Client : MonoBehaviour
                     }
                     break;
                 default:
-                    Debug.Log("Unreconized massage : " + decryptMassage);
+                    Debug.Log("Unreconized massage : " + massage);
                     break;
             }
         }
@@ -258,7 +277,8 @@ public class Client : MonoBehaviour
         }
 
         BinaryFormatter formatter = new BinaryFormatter();
-        formatter.Serialize(networkStream, aesEncryption.Encrypt(data));
+        formatter.Serialize(networkStream, data);
+        //formatter.Serialize(networkStream, aesEncryption.Encrypt(data));
     }
 
     // General Method ------------------------------------------------------------------------------------------
@@ -268,7 +288,7 @@ public class Client : MonoBehaviour
         PlayerManager tempPlay = Instantiate(manager.playerPrefab[skin]).GetComponent<PlayerManager>();
         tempPlay.playerName = name;
         tempPlay.rowPos = row;
-        playerList.Add(tempPlay);
+        playerListInRoom.Add(tempPlay);
         Debug.Log(name);
         // Check is it's mine
         if(name == MyName)
@@ -285,7 +305,7 @@ public class Client : MonoBehaviour
     }
     public void StartSyncPlayer()
     {
-        foreach(PlayerManager a in playerList)
+        foreach(PlayerManager a in playerListInRoom)
         {
             if(a.playerName == myPlayer.playerName)
             {
@@ -295,11 +315,11 @@ public class Client : MonoBehaviour
     }
     public int PlayerCountInRoom()
     {
-        return playerList.Count;
+        return playerListInRoom.Count;
     }
     public void ChangePlayerRow(string thePlayerName, int row)
     {
-        foreach(PlayerManager a in playerList)
+        foreach(PlayerManager a in playerListInRoom)
         {
             if(a.playerName == thePlayerName)
             {
