@@ -466,7 +466,7 @@ namespace Wkwk_Server
                     SendMassage("Server", playerName, "CreatedRoom");
 
                     // Print massage in server
-                    Console.WriteLine(playerName + " : Joined room " + myRoom.roomName);
+                    Console.WriteLine(playerName + " : Created room " + myRoom.roomName);
 
                     return;
                 }

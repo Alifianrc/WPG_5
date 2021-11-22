@@ -50,13 +50,13 @@ public class PlayerManager : MonoBehaviour
     private float tabRange = 10;
 
     // Effect
-    private bool trapEffectIsActive;
+    private bool slowEffectIsActive;
     private float trapSpeed = .3f;
     private float trapTime = 1.5f;
 
-    // Increase speed
-    private float levelStartPos;
-    private float levelDistance;
+    // Level for increase speed
+    private float levelThreshold;
+    private float increaseSpeed = 1f;
 
     // Network
     bool isDisconnect;
@@ -70,7 +70,6 @@ public class PlayerManager : MonoBehaviour
         manager = FindObjectOfType<GameManager>();
         network = FindObjectOfType<Client>();
         finishPoint = manager.FinishPoint;
-        levelDistance = manager.LevelDistance;
 
         // Animation
         try
@@ -106,6 +105,9 @@ public class PlayerManager : MonoBehaviour
 
         // Set Start position
         transform.position = new Vector3(manager.rowXPos[rowPos], -2, 0);
+
+        // Level
+        levelThreshold = manager.LevelDistance;
 
         // Network 
         isDisconnect = false;
@@ -144,12 +146,11 @@ public class PlayerManager : MonoBehaviour
                 }
             }
 
-            // Check level
-            if (levelStartPos + levelDistance < transform.position.y)
+            if(transform.position.y > levelThreshold && !slowEffectIsActive)
             {
-                // Increase level
-                playerDefaultSpeed += .7f;
-                playerDefaultSwipeSpeed -= .007f;
+                levelThreshold += manager.LevelDistance;
+                playerDefaultSpeed += increaseSpeed;
+                playerSpeed = playerDefaultSpeed;
             }
         }
     }
@@ -252,11 +253,11 @@ public class PlayerManager : MonoBehaviour
     // Traps ---------------------------------------------------------------------------------------------------------------
     public void SlowMovement()
     {
-        if (!trapEffectIsActive && !isDead)
+        if (!slowEffectIsActive && !isDead)
         {
             //audio.Play("Fall");
             // Slowdown player
-            trapEffectIsActive = true;
+            slowEffectIsActive = true;
             playerSpeed = playerDefaultSpeed * trapSpeed;
             playerSwipeSpeed = playerDefaultSwipeSpeed * trapSpeed;
             StartCoroutine(TrapActive());
@@ -268,7 +269,7 @@ public class PlayerManager : MonoBehaviour
         yield return new WaitForSeconds(trapTime);
         if (!isDead)
         {
-            trapEffectIsActive = false;
+            slowEffectIsActive = false;
             playerSpeed = playerDefaultSpeed;
             playerSwipeSpeed = playerDefaultSwipeSpeed;
         }

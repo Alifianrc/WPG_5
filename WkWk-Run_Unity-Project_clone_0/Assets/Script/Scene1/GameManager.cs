@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     // Boolean
     public bool GameIsStarted { get; set; }
     public bool GameIsFinished { get; set; }
+    public bool PlatformSpawningIsStarted { get; set; }
 
     // Screen size
     private float screenWidth;
@@ -163,19 +164,18 @@ public class GameManager : MonoBehaviour
     public void StartSpawning()
     {
         // Start spawning obstacle
+        PlatformSpawningIsStarted = true;
         StartCoroutine(SpawnObstacle());
-
-        // Start spawing coin
-        StartCoroutine(SpawnCoin());
     }
     private IEnumerator SpawnObstacle()
     {
         int gap = 0;
+        float yPosCount = 0;
 
-        while (GameIsStarted)
+        while (PlatformSpawningIsStarted)
         {
             // Check spawn position and if this is master
-            if (platformSpawnPoint.position.y > rowPos[0].position.y && network.isMaster && FinishPoint.position.y > rowPos[0].position.y)
+            if (network.isMaster && FinishPoint.position.y + 33 > yPosCount)
             {
                 // Preparing massage data
                 string[] massage = new string[(int)rowCount + 1];
@@ -183,8 +183,6 @@ public class GameManager : MonoBehaviour
                 
                 if(gap <= 0)
                 {
-                    // Reste Gap
-                    gap = Random.Range(6, 13);
                     // Spawn here
                     if (ObstacleLevel == 0)
                     {
@@ -219,6 +217,9 @@ public class GameManager : MonoBehaviour
                                 }
                             }
                         }
+
+                        // Reset Gap
+                        gap = Random.Range(6, 13);
                     }
                     else if (ObstacleLevel == 1)
                     {
@@ -253,6 +254,9 @@ public class GameManager : MonoBehaviour
                                 }
                             }
                         }
+
+                        // Reset Gap
+                        gap = Random.Range(5, 11);
                     }
                     else if (ObstacleLevel == 2)
                     {
@@ -287,6 +291,9 @@ public class GameManager : MonoBehaviour
                                 }
                             }
                         }
+
+                        // Reset Gap
+                        gap = Random.Range(4, 10);
                     }
                     else if (ObstacleLevel == 3)
                     {
@@ -307,11 +314,13 @@ public class GameManager : MonoBehaviour
                                 massage[i + 1] = "0";
                             }
                         }
+
+                        // Reset Gap
+                        gap = Random.Range(5, 9);
                     }
                     else if (ObstacleLevel == 4)
                     {
                         // Spawn Water
-                        // Spawn Candi
                         int obsCount = Random.Range(1, 3);
                         if (obsCount == 1)
                         {
@@ -342,6 +351,9 @@ public class GameManager : MonoBehaviour
                                 }
                             }
                         }
+
+                        // Reset Gap
+                        gap = Random.Range(6, 13);
                     }
                 }
                 else
@@ -355,111 +367,117 @@ public class GameManager : MonoBehaviour
                
                 // Send to other client if host
                 network.SendMassageClient("All", massage);
+
+                // Spawn Coin
+                SpawnCoin();
+
+                yPosCount++;
             }
 
             // Always spawn platform ground
-            if (platformSpawnPos.y < platformSpawnPoint.position.y && FinishPoint.position.y > rowPos[0].position.y)
+            if (FinishPoint.position.y + 33 > platformSpawnPos.y)
             {
                 SpawnPlatformGround();
             }
 
-            yield return new WaitForSeconds(.3f);
-        }
-    }
-    public void SpawnObstacle(int[] platform)
-    {
-        // Spawn
-        for (int i = 0; i < rowPos.Length; i++)
-        {
-            // Instantiate new platform
-            GameObject temp = null;
-            if (platform[i] == 1)
-            {
-                // Spawn Candi
-                int randCandi = Random.Range(0, Candi.Length);
-                temp = Instantiate(Candi[randCandi], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
-            }
-            else if (platform[i] == 2)
-            {
-                // Spawn House
-                int randHouse = Random.Range(0, House.Length);
-                temp = Instantiate(House[randHouse], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
-            }
-            else if (platform[i] == 3)
-            {
-                // Spawn Tree
-                int randTree = Random.Range(0, Tree.Length);
-                temp = Instantiate(Tree[randTree], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
-            }
-            else if (platform[i] == 4)
-            {
-                // Spawn Wall
-                int randWall = Random.Range(0, Wall.Length);
-                temp = Instantiate(Wall[randWall], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
-            }
-            else if (platform[i] == 5)
-            {
-                // Spawn Water
-                int randWater = Random.Range(0, Water.Length);
-                temp = Instantiate(Water[randWater], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
-            }
-           
-            // Relocate row position
-            rowPos[i].position = new Vector3(rowPos[i].position.x, rowPos[i].position.y + rowDist, rowPos[i].position.z);
-            // Check obstacle level
-            if(rowPos[i].position.y > LevelObstacleDistance)
+            // Change obstacle
+            if(yPosCount > LevelObstacleDistance)
             {
                 ObstacleLevel++;
                 LevelObstacleDistance += LevelDistance;
             }
 
-            //Debug.Log("Y Spawn Pos : " + rowPos[i].position.y);
+            yield return new WaitForSeconds(0.001f);
         }
     }
-    private IEnumerator SpawnCoin()
+    public void SpawnObstacle(int[] platform)
     {
-        int coinCount = 0, rowCount = 0, delayRange;
-        int[] rowSelected = new int[5];
-        bool[] rowUsed = new bool[5];
-        float yPos = 8;
-        while (GameIsStarted)
+        // Spawn
+        if(rowPos[0].position.y < FinishPoint.position.y)
         {
-            if (platformSpawnPoint.position.y > rowPos[0].position.y && network.isMaster && FinishPoint.position.y > rowPos[0].position.y)
+            for (int i = 0; i < rowPos.Length; i++)
             {
-                if(coinCount > 0)
+                // Instantiate new platform
+                GameObject temp = null;
+                if (platform[i] == 1)
                 {
-                    for(int i = 0; i < rowCount; i++)
-                    {
-                        string[] m = { "SpawnCoin", rowXPos[rowSelected[i]].ToString(), yPos.ToString()}; 
-                        network.SendMassageClient("All", m);
-                    }
-                    yPos++;
-                    coinCount--;
+                    // Spawn Candi
+                    int randCandi = Random.Range(0, Candi.Length);
+                    temp = Instantiate(Candi[randCandi], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
                 }
-                else
+                else if (platform[i] == 2)
                 {
-                    for (int i = 0; i < rowUsed.Length; i++)
+                    // Spawn House
+                    int randHouse = Random.Range(0, House.Length);
+                    temp = Instantiate(House[randHouse], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                }
+                else if (platform[i] == 3)
+                {
+                    // Spawn Tree
+                    int randTree = Random.Range(0, Tree.Length);
+                    temp = Instantiate(Tree[randTree], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                }
+                else if (platform[i] == 4)
+                {
+                    // Spawn Wall
+                    int randWall = Random.Range(0, Wall.Length);
+                    temp = Instantiate(Wall[randWall], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                }
+                else if (platform[i] == 5)
+                {
+                    // Spawn Water
+                    int randWater = Random.Range(0, Water.Length);
+                    temp = Instantiate(Water[randWater], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                }
+
+                // Relocate row position
+                rowPos[i].position = new Vector3(rowPos[i].position.x, rowPos[i].position.y + rowDist, rowPos[i].position.z);
+
+                //Debug.Log("Y Spawn Pos : " + rowPos[i].position.y);
+            }
+        }
+    }
+
+    int coinCount = 0, coinRowCount = 0, delayRange;
+    int[] coinRowSelected = new int[5];
+    bool[] coinRowUsed = new bool[5];
+    int coinYPos = 8;
+    private void SpawnCoin()
+    {      
+        if (network.isMaster && FinishPoint.position.y > coinYPos)
+        {
+            if(coinCount > 0)
+            {
+                for(int i = 0; i < coinRowCount; i++)
+                {
+                    string[] m = { "SpawnCoin", rowXPos[coinRowSelected[i]].ToString(), coinYPos.ToString()}; 
+                    network.SendMassageClient("All", m);
+                }
+                coinYPos++;
+                coinCount--;
+            }
+            else
+            {
+                for (int i = 0; i < coinRowUsed.Length; i++)
+                {
+                    coinRowUsed[i] = false;
+                }
+                coinCount = Random.Range(5, 12);
+                coinRowCount = Random.Range(1, 5);
+                delayRange = Random.Range(5, 9);
+                coinYPos += delayRange;
+                for(int i = 0; i < coinRowCount; i++)
+                {
+                    coinRowSelected[i] = Random.Range(0, 5);
+                    while (coinRowUsed[coinRowSelected[i]])
                     {
-                        rowUsed[i] = false;
+                        coinRowSelected[i] = Random.Range(0, 5);
                     }
-                    coinCount = Random.Range(5, 12);
-                    rowCount = Random.Range(1, 5);
-                    delayRange = Random.Range(5, 9);
-                    yPos += delayRange;
-                    for(int i = 0; i < rowCount; i++)
-                    {
-                        rowSelected[i] = Random.Range(0, 5);
-                        while (rowUsed[rowSelected[i]])
-                        {
-                            rowSelected[i] = Random.Range(0, 5);
-                        }
-                        rowUsed[rowSelected[i]] = true;
-                    }
+                    coinRowUsed[coinRowSelected[i]] = true;
                 }
             }
-
-            yield return new WaitForSeconds(.5f);
         }
+        
     }
     public void SpawnCoin(int xPos, int yPos)
     {
@@ -601,7 +619,7 @@ public class GameManager : MonoBehaviour
         else if (!isWin)
         {
             gameOverPanelTitle.text = "YOU LOSE !";
-            gameOverPanelPlayerOrder.text = "";
+            gameOverPanelPlayerOrder.text = "0th";
         }
     }
 

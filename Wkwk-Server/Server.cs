@@ -140,9 +140,11 @@ namespace Wkwk_Server
                 if(roomList[i].roomName == room.roomName)
                 {
                     Console.WriteLine("Server : Room " + room.roomName + " destroyed");
-
+                    
                     roomList.Remove(room);
                     room = null;
+
+                    //Console.WriteLine("Server : Room List Count = " + roomList.Count);
 
                     return;
                 }

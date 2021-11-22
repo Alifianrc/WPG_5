@@ -11,7 +11,7 @@ public class Client : MonoBehaviour
     private TcpClient client;
     private NetworkStream networkStream;
     private int port = 3002;
-    public IPAddress ipAd = IPAddress.Parse("127.0.0.1");
+    public IPAddress ipAd = IPAddress.Parse("45.130.229.104");
     // 127.0.0.1
     // 45.130.229.104
 
@@ -32,7 +32,7 @@ public class Client : MonoBehaviour
     [SerializeField] public bool isMaster;
 
     // All players (in room)
-    private List<PlayerManager> playerList;
+    private List<PlayerManager> playerListInRoom;
     private PlayerManager myPlayer;
 
     RsaEncryption rsaEncryption;
@@ -47,7 +47,7 @@ public class Client : MonoBehaviour
 
         client = new TcpClient();
         checkCountDown = CheckTime;
-        playerList = new List<PlayerManager>();
+        playerListInRoom = new List<PlayerManager>();
 
         rsaEncryption = new RsaEncryption();
         aesEncryption = new AesEncryption();
@@ -181,10 +181,17 @@ public class Client : MonoBehaviour
                     isMaster = true;
                     break;
                 case "ExitRoom":
+                    // Reset data
+                    playerListInRoom = new List<PlayerManager>();
+                    isMaster = false;
+                    myPlayer = null;
+                    roomName = "";
+
+                    // Reload scene menu
                     FindObjectOfType<GameManager>().OnExitRoom();
                     break;
                 case "Disconnect":
-                    foreach (PlayerManager a in playerList)
+                    foreach (PlayerManager a in playerListInRoom)
                     {
                         // Refresh player position
                         if (a.playerName == data[2])
@@ -211,7 +218,7 @@ public class Client : MonoBehaviour
                     FindObjectOfType<GameManager>().SpawnObstacle(platformData);
                     break;
                 case "SyncPlr":
-                    foreach(PlayerManager a in playerList)
+                    foreach(PlayerManager a in playerListInRoom)
                     {
                         // Refresh player position
                         if(a.playerName == data[2])
@@ -235,7 +242,7 @@ public class Client : MonoBehaviour
                     FindObjectOfType<GameManager>().SpawnBooster(int.Parse(data[2]), int.Parse(data[3]), int.Parse(data[4]));
                     break;
                 case "PlayerDead":
-                    foreach (PlayerManager a in playerList)
+                    foreach (PlayerManager a in playerListInRoom)
                     {
                         // Refresh player position
                         if (a.playerName == data[2])
@@ -281,7 +288,7 @@ public class Client : MonoBehaviour
         PlayerManager tempPlay = Instantiate(manager.playerPrefab[skin]).GetComponent<PlayerManager>();
         tempPlay.playerName = name;
         tempPlay.rowPos = row;
-        playerList.Add(tempPlay);
+        playerListInRoom.Add(tempPlay);
         Debug.Log(name);
         // Check is it's mine
         if(name == MyName)
@@ -298,7 +305,7 @@ public class Client : MonoBehaviour
     }
     public void StartSyncPlayer()
     {
-        foreach(PlayerManager a in playerList)
+        foreach(PlayerManager a in playerListInRoom)
         {
             if(a.playerName == myPlayer.playerName)
             {
@@ -308,11 +315,11 @@ public class Client : MonoBehaviour
     }
     public int PlayerCountInRoom()
     {
-        return playerList.Count;
+        return playerListInRoom.Count;
     }
     public void ChangePlayerRow(string thePlayerName, int row)
     {
-        foreach(PlayerManager a in playerList)
+        foreach(PlayerManager a in playerListInRoom)
         {
             if(a.playerName == thePlayerName)
             {

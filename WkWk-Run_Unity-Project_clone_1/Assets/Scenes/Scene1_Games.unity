@@ -1647,7 +1647,6 @@ MonoBehaviour:
   roomName: {fileID: 1163693230}
   playerInRoom: {fileID: 1754804269}
   startText: {fileID: 1492938468}
-  countDownTime: 4
 --- !u!1 &817574708
 GameObject:
   m_ObjectHideFlags: 0
@@ -3720,7 +3719,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1990641263}
-  - component: {fileID: 1990641264}
   m_Layer: 0
   m_Name: Platform Spawn Point
   m_TagString: Untagged
@@ -3742,18 +3740,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1990641264
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1990641262}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3b13e4674f1f2e7489104369ad665755, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2071812111
 GameObject:
   m_ObjectHideFlags: 0
