@@ -10,12 +10,40 @@ public class Booster : MonoBehaviour
     private GameManager manager;
     private Client network;
 
+    private int coinValue;
+
     // Start is called before the first frame update
     void Start()
     {
         manager = FindObjectOfType<GameManager>();
         network = FindObjectOfType<Client>();
         destroyPoint = FindObjectOfType<CameraFollow>().PlatformDestroyerPoint;
+        
+        // Set coin value
+        if(transform.position.y < manager.LevelDistance)
+        {
+            coinValue = 10;
+        }
+        else if (transform.position.y < manager.LevelDistance * 2)
+        {
+            coinValue = 15;
+        }
+        else if (transform.position.y < manager.LevelDistance * 3)
+        {
+            coinValue = 20;
+        }
+        else if (transform.position.y < manager.LevelDistance * 4)
+        {
+            coinValue = 25;
+        }
+        else if (transform.position.y < manager.LevelDistance * 5)
+        {
+            coinValue = 30;
+        }
+        else
+        {
+            coinValue = 10;
+        }
     }
 
     // Update is called once per frame
@@ -41,11 +69,20 @@ public class Booster : MonoBehaviour
                 PlayerManager player = collision.GetComponent<PlayerManager>();
                 if (player.playerName == network.MyName)
                 {
-                    player.GetCoin(10);
+                    player.GetCoin(coinValue);
+                }
+            }
+            else if (PlatformName == "Fast")
+            {
+                // Faster movement player
+                PlayerManager player = collision.GetComponent<PlayerManager>();
+                if (player.playerName == network.MyName)
+                {
+                    player.FastMovement();
                 }
             }
 
-            // Destroy coin
+            // Destroy object
             Destroy(gameObject);
         }
         else if (collision.tag == "Obstacle")

@@ -340,7 +340,7 @@ GameObject:
   - component: {fileID: 35538932}
   - component: {fileID: 35538931}
   m_Layer: 0
-  m_Name: Network Builder
+  m_Name: Builder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -359,6 +359,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   NetworkClient: {fileID: 3744547917336869014, guid: 2ee007adaa9ea974abab1b9d6c3fc40e,
+    type: 3}
+  AudioPrefab: {fileID: 5410823663105702273, guid: 1a313ea1474cdd44783b9972668805ad,
     type: 3}
 --- !u!4 &35538932
 Transform:

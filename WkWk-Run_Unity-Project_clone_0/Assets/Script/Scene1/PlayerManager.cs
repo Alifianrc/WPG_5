@@ -49,14 +49,30 @@ public class PlayerManager : MonoBehaviour
     private float swipeRange = 50;
     private float tabRange = 10;
 
-    // Effect
+    // Effect and skill --------------------------------------
+    // Faster movement
+    private bool fastEffectIsActive;
+    private float fastEffectSpeed = 1.7f;
+    private float defaultFastTime = 2f;
+    private float fastCountDown;
+    // Throw sandals
+    private float defaultSandalsSlowTime = 2;
+    // Shield
+    private bool shieldIsActive;
+    private float defaultShieldTime = 5f;
+    // Invisible
+    private bool isInvisible;
+    private float defaultInvisibleTime = 3f;
+    // Slow Movement
     private bool slowEffectIsActive;
-    private float trapSpeed = .3f;
-    private float trapTime = 1.5f;
+    private float slowSpeed = .3f;
+    private float defaultSlowTime = 1.5f;
+    private float slowCountDown;
 
-    // Level for increase speed
-    private float levelThreshold;
+    // Level
+    // Increase speed in certain position
     private float increaseSpeed = 1f;
+    private float levelThreshold;
 
     // Network
     bool isDisconnect;
@@ -150,7 +166,10 @@ public class PlayerManager : MonoBehaviour
             {
                 levelThreshold += manager.LevelDistance;
                 playerDefaultSpeed += increaseSpeed;
-                playerSpeed = playerDefaultSpeed;
+                if(!fastEffectIsActive && !slowEffectIsActive)
+                {
+                    playerSpeed = playerDefaultSpeed;
+                }
             }
         }
     }
@@ -169,6 +188,14 @@ public class PlayerManager : MonoBehaviour
             network.SendMassageClient("AllES", massage);
 
             yield return new WaitForSeconds(5f);
+        }
+    }
+    // Sync Pos
+    public void SyncPos(float x, float y)
+    {
+        if (Mathf.Abs(gameObject.transform.position.y - y) > .8f)
+        {
+            transform.position = new Vector2(x, y);
         }
     }
 
@@ -250,30 +277,105 @@ public class PlayerManager : MonoBehaviour
         rowChanged = true;
     }
 
-    // Traps ---------------------------------------------------------------------------------------------------------------
+    // Traps and Effect -----------------------------------------------------------------------------------------------------------
+    public void SkillButton(int idChar)
+    {
+        if(idChar == 1)
+        {
+            // Bocil skill
+
+        }
+        else if (idChar == 2)
+        {
+            // Cewe kepang skill
+
+        }
+        else if (idChar == 3)
+        {
+            // Emak kos skill
+
+        }
+        else if (idChar == 4)
+        {
+            // Pak Ustad skill
+
+        }
+        else if (idChar == 5)
+        {
+            // Pocong skill
+
+        }
+    }
+    // Fast Movement Effect
+    public void FastMovement()
+    {
+        FastMovement(defaultFastTime);
+    }
+    public void FastMovement(float fastTime)
+    {
+        if (!isDead && !fastEffectIsActive)
+        {
+            //audio.Play("Fall");
+            fastEffectIsActive = true;
+            playerSpeed = playerDefaultSpeed * fastEffectSpeed;
+            playerSwipeSpeed = playerDefaultSwipeSpeed * fastEffectSpeed;
+            fastCountDown = defaultFastTime;
+            StartCoroutine(FastMovementActive());
+        }
+        else if (!isDead && fastEffectIsActive)
+        {
+            fastCountDown = defaultFastTime;
+        }
+    }
+    private IEnumerator FastMovementActive()
+    {
+        // Return player speed after few second
+        while(fastCountDown > 0)
+        {
+            yield return new WaitForSeconds(fastCountDown);
+            fastCountDown -= fastCountDown;
+
+            if (fastCountDown <= 0)
+            {
+                if (!isDead && !slowEffectIsActive)
+                {
+                    playerSpeed = playerDefaultSpeed;
+                    playerSwipeSpeed = playerDefaultSwipeSpeed;
+                }
+                fastEffectIsActive = false;
+            }
+        }
+    }
+    // Slow Movement Effect
     public void SlowMovement()
+    {
+        SlowMovement(defaultSlowTime);
+    }
+    public void SlowMovement(float slowTime)
     {
         if (!slowEffectIsActive && !isDead)
         {
             //audio.Play("Fall");
             // Slowdown player
             slowEffectIsActive = true;
-            playerSpeed = playerDefaultSpeed * trapSpeed;
-            playerSwipeSpeed = playerDefaultSwipeSpeed * trapSpeed;
-            StartCoroutine(TrapActive());
+
+            playerSpeed = playerDefaultSpeed * slowSpeed;
+            playerSwipeSpeed = playerDefaultSwipeSpeed * slowSpeed;
+            StartCoroutine(SlowMovementActive(slowTime));
         }
     }
-    private IEnumerator TrapActive()
+    private IEnumerator SlowMovementActive(float slowTime)
     {
         // Return player speed after few second
-        yield return new WaitForSeconds(trapTime);
-        if (!isDead)
+        yield return new WaitForSeconds(slowTime);
+        if (!isDead && !fastEffectIsActive)
         {
-            slowEffectIsActive = false;
             playerSpeed = playerDefaultSpeed;
             playerSwipeSpeed = playerDefaultSwipeSpeed;
         }
+        slowEffectIsActive = false;
     }
+    // Player Dead
     public void Dead()
     {
         string[] a = { "PlayerDead", transform.position.x.ToString(), transform.position.y.ToString() };
@@ -303,11 +405,13 @@ public class PlayerManager : MonoBehaviour
             }
         }
     }
+    // Player Get Coin
     public void GetCoin(int value)
     {
         GameDataLoader.TheData.Coin += value;
         coinText.text = GameDataLoader.TheData.Coin.ToString("n0");
     }
+    // Player Disconnected
     public void Disconnected()
     {
         Color dark = new Color(80 / 255f, 80 / 255f, 80 / 255f);
@@ -324,13 +428,7 @@ public class PlayerManager : MonoBehaviour
             playerSpeed = 0;
         }
     }
-    public void SyncPos(float x, float y)
-    {
-        if(Mathf.Abs(gameObject.transform.position.y - y) > .8f)
-        {
-            transform.position = new Vector2(x, y);
-        }
-    }
+    
     // UI -----------------------------------------------------------------------------------
     public void ChangePlayerOrder(int value)
     {

@@ -36,13 +36,14 @@ public class GameManager : MonoBehaviour
     // Obstacle
     public int ObstacleLevel { get; set; }
     private float LevelObstacleDistance;
-    [SerializeField] private GameObject[] Candi; // ID = 1
-    [SerializeField] private GameObject[] House; // ID = 2
-    [SerializeField] private GameObject[] Tree;  // ID = 3
-    [SerializeField] private GameObject[] Wall;  // ID = 4
-    [SerializeField] private GameObject[] Water; // ID = 5
+    [SerializeField] private GameObject[] candiPrefab; // ID = 1
+    [SerializeField] private GameObject[] housePrefab; // ID = 2
+    [SerializeField] private GameObject[] treePrefab;  // ID = 3
+    [SerializeField] private GameObject[] wallPrefab;  // ID = 4
+    [SerializeField] private GameObject[] waterPrefab; // ID = 5
     // Booster
-    [SerializeField] private GameObject coin;
+    [SerializeField] private GameObject coinPrefab;
+    [SerializeField] private GameObject[] boosterPrefab;
 
     // Scaling
     private float scaleFix;
@@ -56,7 +57,7 @@ public class GameManager : MonoBehaviour
     public float LevelDistance { get; private set; }
 
     // All Player position
-    [SerializeField] GameObject[] playersOrder;
+    [HideInInspector] GameObject[] playersOrder;
 
     // Finish Position
     public Transform FinishPoint;
@@ -395,45 +396,45 @@ public class GameManager : MonoBehaviour
         // Spawn
         if(rowPos[0].position.y < FinishPoint.position.y)
         {
+
             for (int i = 0; i < rowPos.Length; i++)
             {
                 // Instantiate new platform
-                GameObject temp = null;
+                GameObject temp;
+
                 if (platform[i] == 1)
                 {
                     // Spawn Candi
-                    int randCandi = Random.Range(0, Candi.Length);
-                    temp = Instantiate(Candi[randCandi], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                    int randCandi = Random.Range(0, candiPrefab.Length);
+                    temp = Instantiate(candiPrefab[randCandi], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
                 }
                 else if (platform[i] == 2)
                 {
                     // Spawn House
-                    int randHouse = Random.Range(0, House.Length);
-                    temp = Instantiate(House[randHouse], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                    int randHouse = Random.Range(0, housePrefab.Length);
+                    temp = Instantiate(housePrefab[randHouse], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
                 }
                 else if (platform[i] == 3)
                 {
                     // Spawn Tree
-                    int randTree = Random.Range(0, Tree.Length);
-                    temp = Instantiate(Tree[randTree], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                    int randTree = Random.Range(0, treePrefab.Length);
+                    temp = Instantiate(treePrefab[randTree], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
                 }
                 else if (platform[i] == 4)
                 {
                     // Spawn Wall
-                    int randWall = Random.Range(0, Wall.Length);
-                    temp = Instantiate(Wall[randWall], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                    int randWall = Random.Range(0, wallPrefab.Length);
+                    temp = Instantiate(wallPrefab[randWall], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
                 }
                 else if (platform[i] == 5)
                 {
                     // Spawn Water
-                    int randWater = Random.Range(0, Water.Length);
-                    temp = Instantiate(Water[randWater], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                    int randWater = Random.Range(0, waterPrefab.Length);
+                    temp = Instantiate(waterPrefab[randWater], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
                 }
 
                 // Relocate row position
                 rowPos[i].position = new Vector3(rowPos[i].position.x, rowPos[i].position.y + rowDist, rowPos[i].position.z);
-
-                //Debug.Log("Y Spawn Pos : " + rowPos[i].position.y);
             }
         }
     }
@@ -450,8 +451,16 @@ public class GameManager : MonoBehaviour
             {
                 for(int i = 0; i < coinRowCount; i++)
                 {
-                    string[] m = { "SpawnCoin", rowXPos[coinRowSelected[i]].ToString(), coinYPos.ToString()}; 
-                    network.SendMassageClient("All", m);
+                    if(Random.Range(1, 101) < 5)
+                    {
+                        string[] m = { "SpawnBooster", Random.Range(0, boosterPrefab.Length).ToString(), rowXPos[coinRowSelected[i]].ToString(), coinYPos.ToString() };
+                        network.SendMassageClient("All", m);
+                    }
+                    else
+                    {
+                        string[] n = { "SpawnCoin", rowXPos[coinRowSelected[i]].ToString(), coinYPos.ToString() };
+                        network.SendMassageClient("All", n);
+                    }
                 }
                 coinYPos++;
                 coinCount--;
@@ -482,7 +491,7 @@ public class GameManager : MonoBehaviour
     public void SpawnCoin(int xPos, int yPos)
     {
         // Spawn
-        GameObject temp = Instantiate(coin, new Vector3(xPos, yPos, 1), Quaternion.identity);
+        GameObject temp = Instantiate(coinPrefab, new Vector3(xPos, yPos, 1), Quaternion.identity);
         // Re-scale
         temp.transform.localScale = new Vector3(scaleFix - .3f, scaleFix - .3f, scaleFix - .3f);
     }
@@ -493,7 +502,10 @@ public class GameManager : MonoBehaviour
     }
     public void SpawnBooster(int typeBoost, int xPos, int yPos)
     {
-
+        // Spawn
+        GameObject temp = Instantiate(boosterPrefab[typeBoost], new Vector3(xPos, yPos, 1), Quaternion.identity);
+        // Re-scale
+        temp.transform.localScale = new Vector3(scaleFix - .3f, scaleFix - .3f, scaleFix - .3f);
     }
 
     // Game Level -----------------------------------------------------------------------------------------------------
