@@ -55,6 +55,10 @@ public class PlayerManager : MonoBehaviour
     private float fastEffectSpeed = 1.7f;
     private float defaultFastTime = 2f;
     private float fastCountDown;
+    // Double Coin
+    private bool isDoubleCoinActive;
+    private float doubleCoinValue = 2f;
+    private float defaultDoubleCoinTime = 5f;
     // Throw sandals
     private float defaultSandalsSlowTime = 2;
     // Shield
@@ -87,6 +91,8 @@ public class PlayerManager : MonoBehaviour
         network = FindObjectOfType<Client>();
         finishPoint = manager.FinishPoint;
 
+        audio = FindObjectOfType<AudioManager>();
+
         // Animation
         try
         {
@@ -109,7 +115,8 @@ public class PlayerManager : MonoBehaviour
             coinText.text = GameDataLoader.TheData.Coin.ToString("n0");
         }
         // Set Name
-        nameText.text = playerName;
+        nameText.text = ExtractName(playerName);
+
         // Set UI order
         PlayerOrder = 1;
         orderText.text = PlayerOrder.ToString();
@@ -128,13 +135,16 @@ public class PlayerManager : MonoBehaviour
         // Network 
         isDisconnect = false;
     }
-
     
     void Update()
     {
         // If the game is started
         if (manager.GameIsStarted && !isDisconnect && !isDead)
         {
+            // Audio
+            FindObjectOfType<AudioManager>().Play("Run");
+
+
             // Player start running
             transform.position = new Vector2(transform.position.x, transform.position.y + (playerSpeed * Time.deltaTime));
 
@@ -157,6 +167,9 @@ public class PlayerManager : MonoBehaviour
                 // Check if finish
                 if (transform.position.y > finishPoint.position.y)
                 {
+                    // Audio
+                    audio.Play("Finish");
+
                     // Some UI
                     manager.GameOver(true, PlayerOrder);
                 }
@@ -275,6 +288,9 @@ public class PlayerManager : MonoBehaviour
     {
         rowPos = newRow;
         rowChanged = true;
+
+        // Audio
+        audio.Play("PlayerSwipe");
     }
 
     // Traps and Effect -----------------------------------------------------------------------------------------------------------
@@ -319,12 +335,12 @@ public class PlayerManager : MonoBehaviour
             fastEffectIsActive = true;
             playerSpeed = playerDefaultSpeed * fastEffectSpeed;
             playerSwipeSpeed = playerDefaultSwipeSpeed * fastEffectSpeed;
-            fastCountDown = defaultFastTime;
+            fastCountDown = fastTime;
             StartCoroutine(FastMovementActive());
         }
         else if (!isDead && fastEffectIsActive)
         {
-            fastCountDown = defaultFastTime;
+            fastCountDown = fastTime;
         }
     }
     private IEnumerator FastMovementActive()
@@ -332,8 +348,9 @@ public class PlayerManager : MonoBehaviour
         // Return player speed after few second
         while(fastCountDown > 0)
         {
+            float temp = fastCountDown;
             yield return new WaitForSeconds(fastCountDown);
-            fastCountDown -= fastCountDown;
+            fastCountDown -= temp;
 
             if (fastCountDown <= 0)
             {
@@ -355,25 +372,39 @@ public class PlayerManager : MonoBehaviour
     {
         if (!slowEffectIsActive && !isDead)
         {
-            //audio.Play("Fall");
+            audio.Play("Fall");
             // Slowdown player
             slowEffectIsActive = true;
 
             playerSpeed = playerDefaultSpeed * slowSpeed;
             playerSwipeSpeed = playerDefaultSwipeSpeed * slowSpeed;
-            StartCoroutine(SlowMovementActive(slowTime));
+            slowCountDown = slowTime;
+            StartCoroutine(SlowMovementActive());
+        }
+        else if (slowEffectIsActive && !isDead)
+        {
+            slowCountDown = slowTime;
         }
     }
-    private IEnumerator SlowMovementActive(float slowTime)
+    private IEnumerator SlowMovementActive()
     {
         // Return player speed after few second
-        yield return new WaitForSeconds(slowTime);
-        if (!isDead && !fastEffectIsActive)
+        while(slowCountDown > 0)
         {
-            playerSpeed = playerDefaultSpeed;
-            playerSwipeSpeed = playerDefaultSwipeSpeed;
+            float temp = slowCountDown;
+            yield return new WaitForSeconds(slowCountDown);
+            slowCountDown -= temp;
+
+            if(slowCountDown <= 0)
+            {
+                if (!isDead && !fastEffectIsActive)
+                {
+                    playerSpeed = playerDefaultSpeed;
+                    playerSwipeSpeed = playerDefaultSwipeSpeed;
+                }
+                slowEffectIsActive = false;
+            }
         }
-        slowEffectIsActive = false;
     }
     // Player Dead
     public void Dead()
@@ -386,8 +417,22 @@ public class PlayerManager : MonoBehaviour
     {
         if (!isDead)
         {
-            //audio.Stop("Run");
-            //audio.Play("Scream");
+            // Audio
+            audio.Stop("PlayBGM");
+            int audioRand = Random.Range(0, 3);
+            if (audioRand == 0)
+            {
+                audio.Stop("Scream");
+            }
+            else if(audioRand == 1)
+            {
+                audio.Stop("DeadF");
+            }
+            else
+            {
+                audio.Stop("DeadM");
+            }
+
             isDead = true;
             // Player dead
             if (playerName == network.MyName)
@@ -408,8 +453,19 @@ public class PlayerManager : MonoBehaviour
     // Player Get Coin
     public void GetCoin(int value)
     {
-        GameDataLoader.TheData.Coin += value;
-        coinText.text = GameDataLoader.TheData.Coin.ToString("n0");
+        // Audio
+        FindObjectOfType<AudioManager>().Play("Coin");
+
+        if (isDoubleCoinActive)
+        {
+            GameDataLoader.TheData.Coin += (value * 2);
+            coinText.text = GameDataLoader.TheData.Coin.ToString("n0");
+        }
+        else
+        {
+            GameDataLoader.TheData.Coin += value;
+            coinText.text = GameDataLoader.TheData.Coin.ToString("n0");
+        }
     }
     // Player Disconnected
     public void Disconnected()
@@ -435,5 +491,9 @@ public class PlayerManager : MonoBehaviour
         PlayerOrder = value;
         orderText.text = value.ToString();
     }
-
+    private string ExtractName(string name)
+    {
+        int nameLength = name.Length - 6;
+        return name.Substring(0, nameLength);
+    }
 }

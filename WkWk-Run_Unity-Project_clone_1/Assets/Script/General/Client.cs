@@ -17,7 +17,8 @@ public class Client : MonoBehaviour
 
     // Player and Room name
 
-    public string MyName { get; set; }
+    public string MyName { get; private set; }
+    public string MyRealName { get; set; }
     public string roomName { get; set; }
 
     // Connection status
@@ -43,7 +44,8 @@ public class Client : MonoBehaviour
         // Never destroy this object
         DontDestroyOnLoad(gameObject);
 
-        MyName = GameDataLoader.TheData.UserName;
+        MyRealName = GameDataLoader.TheData.UserName;
+        GenerateName();
 
         client = new TcpClient();
         checkCountDown = CheckTime;
@@ -53,6 +55,12 @@ public class Client : MonoBehaviour
         aesEncryption = new AesEncryption();
  
         StartCoroutine(TryConnecting());
+    }
+
+    // Generate Name + 6 Random number
+    public void GenerateName()
+    {
+        MyName = MyRealName + UnityEngine.Random.Range(10, 100) + UnityEngine.Random.Range(10, 100) + UnityEngine.Random.Range(10, 100);
     }
 
     // Try connecting to server

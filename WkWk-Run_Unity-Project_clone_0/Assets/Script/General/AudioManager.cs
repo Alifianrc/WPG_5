@@ -78,12 +78,19 @@ public class AudioManager : MonoBehaviour
 		turnOnSoundButton.SetActive(true);
 	}
 
-	public void TurnOnSound()
+	public void TurnOnSound(int scene)
     {
 		// Set bool
 		soundIsOn = true;
 		// Start BGM again
-		Play("BGM");
+		if(scene == 0)
+        {
+			Play("MenuBGM");
+        }
+        else
+        {
+			Play("PlayBGM");
+        }
 		// Set ui button
 		turnOffSoundButton.SetActive(true);
 		turnOnSoundButton.SetActive(false);

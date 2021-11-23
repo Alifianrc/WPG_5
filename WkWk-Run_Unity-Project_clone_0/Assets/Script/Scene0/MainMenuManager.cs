@@ -50,6 +50,8 @@ public class MainMenuManager : MonoBehaviour
         nameText.text = theData.UserName;
 
         // Audio
+        FindObjectOfType<AudioManager>().Play("MenuBGM");
+        FindObjectOfType<AudioManager>().Stop("PlayBGM");
 
         // Checking connection regulary
         StartCoroutine(CheckConnection());
@@ -105,5 +107,11 @@ public class MainMenuManager : MonoBehaviour
     public void ExitGame()
     {
         Application.Quit();
+    }
+
+    // Audio
+    public void ButtonSFX()
+    {
+        FindObjectOfType<AudioManager>().Play("Button");
     }
 }

@@ -56,8 +56,8 @@ public class SettingButton : MonoBehaviour
     {
         FindObjectOfType<AudioManager>().TurnOffSound();
     }
-    public void TurnOnSound()
+    public void TurnOnSound(int scene)
     {
-        FindObjectOfType<AudioManager>().TurnOnSound();
+        FindObjectOfType<AudioManager>().TurnOnSound(scene);
     }
 }

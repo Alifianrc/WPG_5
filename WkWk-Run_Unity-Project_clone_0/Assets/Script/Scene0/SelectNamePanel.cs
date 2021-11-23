@@ -27,11 +27,13 @@ public class SelectNamePanel : MonoBehaviour
         GameDataLoader.TheData.UserName = inputName.text;
         SaveGame.SaveProgress(GameDataLoader.TheData);
         FindObjectOfType<MainMenuManager>().nameText.text = inputName.text;
-        FindObjectOfType<Client>().MyName = inputName.text;
+        Client temp = FindObjectOfType<Client>();
+        temp.MyRealName = inputName.text;
+        temp.GenerateName();
 
         // Tell server
         Client client = FindObjectOfType<Client>();
-        string[] massage = new string[] { "ChangeName", inputName.text };
+        string[] massage = new string[] { "ChangeName", temp.MyName };
         client.SendMassageClient("Server", massage);
 
         gameObject.SetActive(false);

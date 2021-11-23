@@ -53,7 +53,6 @@ public class GameManager : MonoBehaviour
     [HideInInspector] public float[] rowXPos { get; private set; }
 
     // Level value
-    public int GameLevel { get; private set; }
     public float LevelDistance { get; private set; }
 
     // All Player position
@@ -80,6 +79,10 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     private void Start()
     {
+        // Audio
+        FindObjectOfType<AudioManager>().Play("PlayBGM");
+        FindObjectOfType<AudioManager>().Stop("MenuBGM");
+
         // Networking
         network = FindObjectOfType<Client>();
 
@@ -111,7 +114,6 @@ public class GameManager : MonoBehaviour
         scaleFix = width / rowCount;
 
         // Game level
-        GameLevel = 0;
         LevelDistance = FinishPoint.position.y / 5;
 
         // Obstacle level
@@ -125,20 +127,6 @@ public class GameManager : MonoBehaviour
 
         // Creating start map
         StartMapSpawn();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        // If the game is started
-        if (GameIsStarted && network.isMaster)
-        {
-            
-        }
-        else if(GameIsStarted && !network.isMaster)
-        {
-            
-        }
     }
 
     // Creating map for start
@@ -508,16 +496,7 @@ public class GameManager : MonoBehaviour
         temp.transform.localScale = new Vector3(scaleFix - .3f, scaleFix - .3f, scaleFix - .3f);
     }
 
-    // Game Level -----------------------------------------------------------------------------------------------------
-    public void IncreaseGameLevel()
-    {
-        GameLevel++;
-        //allTrapRandomValue += 2;
-        //trapSlowRandomValue -= 3;
-        //trapMovingRandomValue += 3;
-    }
-
-    // Player Order
+    // Player Order ----------------------------------------------------------------------------------------------------
     // Find all players
     public void FindPlayers()
     {
@@ -644,5 +623,11 @@ public class GameManager : MonoBehaviour
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene(0);
+    }
+
+    // Audio
+    public void ButtonSFX()
+    {
+        FindObjectOfType<AudioManager>().Play("Button");
     }
 }

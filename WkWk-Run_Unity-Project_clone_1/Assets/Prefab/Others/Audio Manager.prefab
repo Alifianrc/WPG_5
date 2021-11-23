@@ -96,7 +96,7 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 1835427fe8b564e438b3ecb8f541f782, type: 3}
     volume: 1
     pitch: 1
-    loop: 0
+    loop: 1
     source: {fileID: 0}
   - name: Coin
     clip: {fileID: 8300000, guid: 7a243fb86d88be74e990da695208309d, type: 3}
@@ -110,7 +110,7 @@ MonoBehaviour:
     pitch: 1
     loop: 0
     source: {fileID: 0}
-  - name: Slide
+  - name: PlayerSwipe
     clip: {fileID: 8300000, guid: f682dffaca5385d4e89702ea797053a2, type: 3}
     volume: 1
     pitch: 1
@@ -120,7 +120,7 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: e257ca2bd195c0e489fa3040e83e10e8, type: 3}
     volume: 0.7
     pitch: 1
-    loop: 1
+    loop: 0
     source: {fileID: 0}
   - name: Scream
     clip: {fileID: 8300000, guid: d4f097d4997bcc74f8131a2a8c22b59f, type: 3}
