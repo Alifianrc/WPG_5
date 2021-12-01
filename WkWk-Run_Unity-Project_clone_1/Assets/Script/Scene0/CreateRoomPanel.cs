@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Analytics;
 
 public class CreateRoomPanel : MonoBehaviour
 {
@@ -83,8 +84,12 @@ public class CreateRoomPanel : MonoBehaviour
 
     public void CreateRoom()
     {
+        // Send massage to server
         StartPanel.RoomName = inputRoomName.text;
         string[] massage = new string[] { "CreateRoom", inputRoomName.text, maxPlayerCount.ToString(), BoolToString(isPublic) };
         network.SendMassageClient("Server", massage);
+
+        // Analytic
+        Analytics.CustomEvent("Play Create Room");
     }
 }

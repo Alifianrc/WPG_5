@@ -23,7 +23,7 @@ public class SaveData
     public SaveData()
     {
         UserName = "";
-        Coin = 10000;
+        Coin = 500;
 
         int i = 0;
         foreach (bool a in SkinIsLock)

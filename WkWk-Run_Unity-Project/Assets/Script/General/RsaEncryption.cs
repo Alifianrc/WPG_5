@@ -77,8 +77,8 @@ public class RsaEncryption
     {
         if (key.Equals(null))
         {
-            Console.WriteLine("Empty private key");
-            return null;
+            Console.WriteLine("Empty key");
+            return "Empty key";
         }
 
         try
@@ -99,10 +99,11 @@ public class RsaEncryption
         }
         catch (Exception e)
         {
-            Console.WriteLine("Decryption server error : " + e.Message);
+            Console.WriteLine("Decryption error : " + e.Message);
+            return "Decryption error : " + e.Message;
         }
 
-        return null;
+        return "Massage not encrypted";
     }
 
     public string ConvertKeyToString(RSAParameters key)

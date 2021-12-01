@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Analytics;
 
 public class MainMenuManager : MonoBehaviour
 {
@@ -63,6 +64,9 @@ public class MainMenuManager : MonoBehaviour
         // Join Lobby
         network.SendMassageClient("Server", "Play");
         matchmakingPanel.SetActive(true);
+
+        // Analytic
+        Analytics.CustomEvent("Play Random");
     }
     public void OnJoinedLobby()
     {

@@ -97,6 +97,7 @@ public class PlayerManager : MonoBehaviour
         try
         {
             animator = GetComponent<Animator>();
+            animator.SetFloat("Speed", 0);
         }
         catch
         {
@@ -147,6 +148,16 @@ public class PlayerManager : MonoBehaviour
 
             // Player start running
             transform.position = new Vector2(transform.position.x, transform.position.y + (playerSpeed * Time.deltaTime));
+
+            // Animation
+            try
+            {
+                animator.SetFloat("Speed", 1);
+            }
+            catch
+            {
+
+            }
 
             // Check changing row
             if (rowChanged)
@@ -290,7 +301,10 @@ public class PlayerManager : MonoBehaviour
         rowChanged = true;
 
         // Audio
-        audio.Play("PlayerSwipe");
+        if(playerName == network.MyName)
+        {
+            audio.Play("PlayerSwipe");
+        }
     }
 
     // Traps and Effect -----------------------------------------------------------------------------------------------------------
@@ -331,7 +345,10 @@ public class PlayerManager : MonoBehaviour
     {
         if (!isDead && !fastEffectIsActive)
         {
-            //audio.Play("Fall");
+            if (playerName == network.MyName)
+            {
+                audio.Play("Fall");
+            }
             fastEffectIsActive = true;
             playerSpeed = playerDefaultSpeed * fastEffectSpeed;
             playerSwipeSpeed = playerDefaultSwipeSpeed * fastEffectSpeed;
@@ -419,6 +436,8 @@ public class PlayerManager : MonoBehaviour
         {
             // Audio
             audio.Stop("PlayBGM");
+            audio.Stop("Run");
+
             int audioRand = Random.Range(0, 3);
             if (audioRand == 0)
             {
@@ -454,8 +473,11 @@ public class PlayerManager : MonoBehaviour
     public void GetCoin(int value)
     {
         // Audio
-        FindObjectOfType<AudioManager>().Play("Coin");
-
+        if (playerName == network.MyName)
+        {
+            FindObjectOfType<AudioManager>().Play("Coin");
+        }
+            
         if (isDoubleCoinActive)
         {
             GameDataLoader.TheData.Coin += (value * 2);

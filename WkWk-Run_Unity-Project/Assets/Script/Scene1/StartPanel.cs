@@ -131,6 +131,11 @@ public class StartPanel : MonoBehaviour
                 startText.text = (((int)countDownTime) - 1).ToString();
             }
 
+            if(countDownTime <= 2)
+            {
+                manager.spawnObstacleDelay = .1f;
+            }
+
             yield return new WaitForSeconds(1);
 
             countDownTime--;

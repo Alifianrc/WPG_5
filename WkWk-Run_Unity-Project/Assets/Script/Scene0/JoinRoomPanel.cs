@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Analytics;
 
 public class JoinRoomPanel : MonoBehaviour
 {
@@ -31,9 +32,13 @@ public class JoinRoomPanel : MonoBehaviour
     // Join Room
     public void JoinRoom()
     {
+        // Send massage to server
         StartPanel.RoomName = inputRoomName.text;
         string[] massage = new string[] { "JoinRoom", inputRoomName.text };
         network.SendMassageClient("Server", massage);
+
+        // Analytic
+        Analytics.CustomEvent("Play Join Room");
     }
 
     // If room not found

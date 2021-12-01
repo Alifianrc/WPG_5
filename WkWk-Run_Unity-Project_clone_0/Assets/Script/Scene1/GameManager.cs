@@ -1,7 +1,9 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Analytics;
 
 public class GameManager : MonoBehaviour
 {
@@ -76,6 +78,9 @@ public class GameManager : MonoBehaviour
     // Network
     private Client network;
 
+    // For analytics
+    private int startCoin;
+
     // Start is called before the first frame update
     private void Start()
     {
@@ -127,6 +132,9 @@ public class GameManager : MonoBehaviour
 
         // Creating start map
         StartMapSpawn();
+
+        // Analytics
+        startCoin = GameDataLoader.TheData.Coin;
     }
 
     // Creating map for start
@@ -150,6 +158,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Platform spaner -------------------------------------------------------------------------------------------------
+    public float spawnObstacleDelay = .09f;
     public void StartSpawning()
     {
         // Start spawning obstacle
@@ -376,7 +385,7 @@ public class GameManager : MonoBehaviour
                 LevelObstacleDistance += LevelDistance;
             }
 
-            yield return new WaitForSeconds(0.001f);
+            yield return new WaitForSeconds(spawnObstacleDelay);
         }
     }
     public void SpawnObstacle(int[] platform)
@@ -566,19 +575,16 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(1.5f);
         if (isWin)
         {
-            //audio.Play("Finish");
+            FindObjectOfType<AudioManager>().Play("Finish");
         }
         else
         {
-            //audio.Play("Lose");
+            FindObjectOfType<AudioManager>().Play("Lose");
         }
 
         Time.timeScale = .3f;
-
         gameOverPanel.SetActive(true);
-
         gameOverPanelSprite.sprite = characterSpriteFace[GameDataLoader.TheData.selectedChar];
-
         gameOverPanelCoin.text = GameDataLoader.TheData.Coin.ToString("n0");
         SaveGame.SaveProgress(GameDataLoader.TheData);
 
@@ -611,6 +617,24 @@ public class GameManager : MonoBehaviour
         {
             gameOverPanelTitle.text = "YOU LOSE !";
             gameOverPanelPlayerOrder.text = "0th";
+        }
+
+        // Analytic
+        if (isWin)
+        {
+            Analytics.CustomEvent("Game Finish Win", new Dictionary<string, object> {
+                { "Distance", network.myPlayer.transform.position.y + 2},
+                { "Total Coin", GameDataLoader.TheData.Coin - startCoin},
+                { "Character Selected", GameDataLoader.TheData.selectedChar}
+            });
+        }
+        else
+        {
+            Analytics.CustomEvent("Game Finish Lose", new Dictionary<string, object> {
+                { "Distance", network.myPlayer.transform.position.y + 2},
+                { "Total Coin", GameDataLoader.TheData.Coin - startCoin},
+                { "Character Selected", GameDataLoader.TheData.selectedChar}
+            });
         }
     }
 

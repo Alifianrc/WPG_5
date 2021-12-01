@@ -34,7 +34,7 @@ public class Client : MonoBehaviour
 
     // All players (in room)
     private List<PlayerManager> playerListInRoom;
-    private PlayerManager myPlayer;
+    public PlayerManager myPlayer { get; private set; }
 
     RsaEncryption rsaEncryption;
     AesEncryption aesEncryption;
@@ -135,7 +135,6 @@ public class Client : MonoBehaviour
         {
             formatter.Serialize(networkStream, aesEncryption.Encrypt("Server|" + MyName));
         }
-        
 
         // Ready to communicate
         isReady = true;
