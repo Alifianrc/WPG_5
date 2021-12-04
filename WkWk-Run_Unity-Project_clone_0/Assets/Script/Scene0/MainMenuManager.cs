@@ -53,6 +53,7 @@ public class MainMenuManager : MonoBehaviour
         // Audio
         FindObjectOfType<AudioManager>().Play("MenuBGM");
         FindObjectOfType<AudioManager>().Stop("PlayBGM");
+        FindObjectOfType<AudioManager>().Stop("Run");
 
         // Checking connection regulary
         StartCoroutine(CheckConnection());

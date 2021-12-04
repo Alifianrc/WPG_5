@@ -99,7 +99,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d6a7c98312a81b4e861d16dc1b4bc70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlatformName: Candi
+  ObstacleName: Candi
 --- !u!50 &8756646337395683934
 Rigidbody2D:
   serializedVersion: 4

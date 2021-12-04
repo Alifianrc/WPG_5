@@ -423,9 +423,30 @@ public class PlayerManager : MonoBehaviour
             }
         }
     }
-    // Player Dead
-    public void Dead()
+    // Swimming animation
+    private bool isSwimming = false;
+    public void IsSwimming(bool isTrue)
     {
+        animator.SetBool("IsSwim", isTrue);
+        isSwimming = isTrue;
+
+        StartCoroutine(SwimmingTime());
+    }
+    private IEnumerator SwimmingTime()
+    {
+        yield return new WaitForSeconds(5);
+        animator.SetBool("IsSwim", false);
+        isSwimming = false;
+    }
+    // Player Dead
+    public void Dead(string obstacleName)
+    {
+        // Animation
+        if(obstacleName == "Lava")
+        {
+            animator.SetTrigger("Burning");
+        }
+
         string[] a = { "PlayerDead", transform.position.x.ToString(), transform.position.y.ToString() };
         network.SendMassageClient("AllES", a);
         DeadMethod();

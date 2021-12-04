@@ -169,6 +169,10 @@ namespace Wkwk_Server
                                 string[] a = new string[] { "SpawnObstacle", info[2], info[3], info[4], info[5], info[6] };
                                 SendMassage("Client", "All", a);
                                 break;
+                            case "SpawnObstacleGap":
+                                string[] e = new string[] { "SpawnObstacleGap", info[2] };
+                                SendMassage("Client", "All", e);                                
+                                break;
                             case "StartGame":
                                 // Lock room
                                 myRoom.SetCanJoin(false);

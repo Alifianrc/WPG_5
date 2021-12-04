@@ -97,7 +97,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d6a7c98312a81b4e861d16dc1b4bc70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlatformName: House
+  ObstacleName: House
 --- !u!50 &786278796623433162
 Rigidbody2D:
   serializedVersion: 4

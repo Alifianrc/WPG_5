@@ -38,11 +38,16 @@ public class GameManager : MonoBehaviour
     // Obstacle
     public int ObstacleLevel { get; set; }
     private float LevelObstacleDistance;
+    private int spawnObstacleGapLength;
+    private float spawnObstacleYPosCount;
+    private bool canSpawnObstacle;
+    private bool canSendObstacleGap;
     [SerializeField] private GameObject[] candiPrefab; // ID = 1
     [SerializeField] private GameObject[] housePrefab; // ID = 2
     [SerializeField] private GameObject[] treePrefab;  // ID = 3
     [SerializeField] private GameObject[] wallPrefab;  // ID = 4
     [SerializeField] private GameObject[] waterPrefab; // ID = 5
+    [SerializeField] private GameObject lavaPrefab;    // ID = 6
     // Booster
     [SerializeField] private GameObject coinPrefab;
     [SerializeField] private GameObject[] boosterPrefab;
@@ -98,6 +103,12 @@ public class GameManager : MonoBehaviour
         // Platform start pos
         platformSpawnPos = new Vector3(0, 0, 10);
 
+        // Obstacle
+        spawnObstacleGapLength = 0;
+        spawnObstacleYPosCount = 0;
+        canSpawnObstacle = true;
+        canSendObstacleGap = false;
+
         // Set screen size
         Vector2 minPosCamera = Camera.main.ScreenToWorldPoint(new Vector2(0, 0));
         Vector2 maxPosCamera = Camera.main.ScreenToWorldPoint(new Vector2(Camera.main.pixelWidth, Camera.main.pixelHeight));
@@ -119,7 +130,7 @@ public class GameManager : MonoBehaviour
         scaleFix = width / rowCount;
 
         // Game level
-        LevelDistance = FinishPoint.position.y / 5;
+        LevelDistance = FinishPoint.position.y / 6;
 
         // Obstacle level
         ObstacleLevel = 0;
@@ -158,7 +169,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Platform spaner -------------------------------------------------------------------------------------------------
-    public float spawnObstacleDelay = .09f;
+    public float spawnObstacleDelay = .3f;
     public void StartSpawning()
     {
         // Start spawning obstacle
@@ -167,19 +178,16 @@ public class GameManager : MonoBehaviour
     }
     private IEnumerator SpawnObstacle()
     {
-        int gap = 0;
-        float yPosCount = 0;
-
         while (PlatformSpawningIsStarted)
         {
             // Check spawn position and if this is master
-            if (network.isMaster && FinishPoint.position.y + 33 > yPosCount)
+            if (network.isMaster && FinishPoint.position.y + 33 > spawnObstacleYPosCount)
             {
                 // Preparing massage data
                 string[] massage = new string[(int)rowCount + 1];
                 massage[0] = "SpawnObstacle";
                 
-                if(gap <= 0)
+                if(canSpawnObstacle)
                 {
                     // Spawn here
                     if (ObstacleLevel == 0)
@@ -217,7 +225,7 @@ public class GameManager : MonoBehaviour
                         }
 
                         // Reset Gap
-                        gap = Random.Range(6, 13);
+                        spawnObstacleGapLength = Random.Range(6, 13);
                     }
                     else if (ObstacleLevel == 1)
                     {
@@ -254,7 +262,7 @@ public class GameManager : MonoBehaviour
                         }
 
                         // Reset Gap
-                        gap = Random.Range(5, 11);
+                        spawnObstacleGapLength = Random.Range(5, 11);
                     }
                     else if (ObstacleLevel == 2)
                     {
@@ -291,7 +299,7 @@ public class GameManager : MonoBehaviour
                         }
 
                         // Reset Gap
-                        gap = Random.Range(4, 10);
+                        spawnObstacleGapLength = Random.Range(4, 10);
                     }
                     else if (ObstacleLevel == 3)
                     {
@@ -314,7 +322,7 @@ public class GameManager : MonoBehaviour
                         }
 
                         // Reset Gap
-                        gap = Random.Range(5, 9);
+                        spawnObstacleGapLength = Random.Range(5, 9);
                     }
                     else if (ObstacleLevel == 4)
                     {
@@ -351,26 +359,65 @@ public class GameManager : MonoBehaviour
                         }
 
                         // Reset Gap
-                        gap = Random.Range(6, 13);
+                        spawnObstacleGapLength = Random.Range(6, 13);
                     }
-                }
-                else
-                {
-                    gap--;
-                    for(int i = 0; i < rowCount; i++)
+                    else if (ObstacleLevel == 5)
                     {
-                        massage[i + 1] = "0";
+                        // Spawn Candi
+                        int obsCount = Random.Range(1, 3);
+                        if (obsCount == 1)
+                        {
+                            int ranPos = Random.Range(0, 5);
+                            for (int i = 0; i < rowCount; i++)
+                            {
+                                if (i == ranPos)
+                                {
+                                    massage[i + 1] = "6";
+                                }
+                                else
+                                {
+                                    massage[i + 1] = "0";
+                                }
+                            }
+                        }
+                        else if (obsCount == 2)
+                        {
+                            for (int i = 0; i < rowCount; i++)
+                            {
+                                if (i == 0 || i == 4)
+                                {
+                                    massage[i + 1] = "6";
+                                }
+                                else
+                                {
+                                    massage[i + 1] = "0";
+                                }
+                            }
+                        }
+
+                        // Reset Gap
+                        spawnObstacleGapLength = Random.Range(6, 13);
                     }
+
+                    // Set bool
+                    canSpawnObstacle = false;
+                    canSendObstacleGap = true;
+
+                    spawnObstacleYPosCount++;
+                }
+                else if(canSendObstacleGap)
+                {
+                    // Send Gap massage
+                    network.SendMassageClient("All", "SpawnObstacleGap|" + spawnObstacleGapLength.ToString());
+                    canSendObstacleGap = false;
                 }
                
                 // Send to other client if host
                 network.SendMassageClient("All", massage);
-
-                // Spawn Coin
-                SpawnCoin();
-
-                yPosCount++;
             }
+
+            // Spawn Coin
+            SpawnCoin();
 
             // Always spawn platform ground
             if (FinishPoint.position.y + 33 > platformSpawnPos.y)
@@ -379,7 +426,7 @@ public class GameManager : MonoBehaviour
             }
 
             // Change obstacle
-            if(yPosCount > LevelObstacleDistance)
+            if(spawnObstacleYPosCount > LevelObstacleDistance)
             {
                 ObstacleLevel++;
                 LevelObstacleDistance += LevelDistance;
@@ -429,11 +476,32 @@ public class GameManager : MonoBehaviour
                     int randWater = Random.Range(0, waterPrefab.Length);
                     temp = Instantiate(waterPrefab[randWater], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
                 }
+                else if (platform[i] == 6)
+                {
+                    // Spawn Lava
+                    temp = Instantiate(lavaPrefab, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                }
 
                 // Relocate row position
                 rowPos[i].position = new Vector3(rowPos[i].position.x, rowPos[i].position.y + rowDist, rowPos[i].position.z);
             }
         }
+    }
+    public void SpawnObstacleGap(int gapLength)
+    {
+        // Relocate Y Pos
+        for (int i = 0; i < rowPos.Length; i++)
+        {
+            rowPos[i].position = new Vector3(rowPos[i].position.x, rowPos[i].position.y + (rowDist * gapLength), rowPos[i].position.z);
+        }
+
+        // Add y Pos
+        spawnObstacleYPosCount += spawnObstacleGapLength;
+        // Set Gap to 1
+        spawnObstacleGapLength = 1;
+
+        // Set bool
+        canSpawnObstacle = true;
     }
 
     int coinCount = 0, coinRowCount = 0, delayRange;

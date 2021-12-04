@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Obstacle : MonoBehaviour
 {
-    [SerializeField] private string PlatformName;
+    [SerializeField] private string ObstacleName;
     private Transform destroyPoint;
 
     private GameManager manager;
@@ -38,7 +38,7 @@ public class Obstacle : MonoBehaviour
             PlayerManager player = collision.gameObject.GetComponent<PlayerManager>();
             if(player.playerName == network.MyName)
             {
-                player.Dead();
+                player.Dead(ObstacleName);
             }
         }
         else
@@ -49,9 +49,16 @@ public class Obstacle : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.tag == "Player" && PlatformName == "Water")
+        if(collision.tag == "Player")
         {
-            Debug.Log("Swimming");
+            if(ObstacleName == "Water")
+            {
+                collision.GetComponent<PlayerManager>().IsSwimming(true);
+            }
+            else if(ObstacleName == "Water End" || ObstacleName == "Bridge")
+            {
+                collision.GetComponent<PlayerManager>().IsSwimming(false);
+            }
         }
     }
 }
