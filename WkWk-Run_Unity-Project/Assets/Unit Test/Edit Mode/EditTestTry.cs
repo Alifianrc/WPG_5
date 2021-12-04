@@ -39,8 +39,10 @@ namespace Tests
             var rsa = new RsaEncryption();
             Assert.AreNotEqual(testData, rsa.Encrypt(testData, rsa.serverPublicKey));
             // Client public and private key
-            //string encryptedData = rsa.Encrypt(testData, rsa.clientPublicKey);
-            //Assert.AreEqual(testData, rsa.Decrypt(encryptedData, rsa.clientPrivateKey));
+            string encryptedData = rsa.Encrypt(testData, rsa.clientPublicKey);
+            int lenght = testData.Length;
+            string decryptedData = rsa.Decrypt(encryptedData, rsa.clientPrivateKey).Substring(0, lenght);
+            Assert.AreEqual(testData, decryptedData);
 
             // AES or Symmetric key
             var aes = new AesEncryption();

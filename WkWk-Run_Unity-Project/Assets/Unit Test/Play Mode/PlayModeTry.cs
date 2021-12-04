@@ -13,9 +13,12 @@ namespace Tests
         [UnityTest]
         public IEnumerator SpawnTestWithEnumeratorPasses()
         {
-           
+            //var gameObject = new GameObject();
+            
+            
+            yield return new WaitForSeconds(3);
 
-            yield return null;
+            //Assert.IsNotNull(GameObject.FindObjectOfType<AudioManager>);
         }
     }
 }
