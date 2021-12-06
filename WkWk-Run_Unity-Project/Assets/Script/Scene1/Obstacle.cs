@@ -11,7 +11,7 @@ public class Obstacle : MonoBehaviour
     private Client network;
 
     private bool isStartRolling;
-    private float rollingSpeed = 1.5f;
+    private float rollingSpeed = 3.5f;
 
     // Start is called before the first frame update
     void Start()
@@ -35,6 +35,14 @@ public class Obstacle : MonoBehaviour
             if (isStartRolling)
             {
                 transform.position = new Vector2(transform.position.x, (transform.position.y - rollingSpeed * Time.deltaTime));
+                try
+                {
+                    GetComponent<Animator>().SetFloat("Speed", rollingSpeed);
+                }
+                catch
+                {
+
+                }
             }
         }
     }

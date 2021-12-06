@@ -75,7 +75,7 @@ public class PlayerManager : MonoBehaviour
 
     // Level
     // Increase speed in certain position
-    private float increaseSpeed = 1f;
+    private float increaseSpeed = .5f;
     private float levelThreshold;
 
     // Network
@@ -186,6 +186,7 @@ public class PlayerManager : MonoBehaviour
                 }
             }
 
+            // Increase character default speed each level
             if(transform.position.y > levelThreshold && !slowEffectIsActive)
             {
                 levelThreshold += manager.LevelDistance;
@@ -424,11 +425,9 @@ public class PlayerManager : MonoBehaviour
         }
     }
     // Swimming animation
-    private bool isSwimming = false;
     public void IsSwimming(bool isTrue)
     {
         animator.SetBool("IsSwim", isTrue);
-        isSwimming = isTrue;
 
         StartCoroutine(SwimmingTime());
     }
@@ -436,7 +435,6 @@ public class PlayerManager : MonoBehaviour
     {
         yield return new WaitForSeconds(5);
         animator.SetBool("IsSwim", false);
-        isSwimming = false;
     }
     // Player Dead
     public void Dead(string obstacleName)
