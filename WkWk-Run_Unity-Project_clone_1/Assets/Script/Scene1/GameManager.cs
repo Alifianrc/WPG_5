@@ -8,7 +8,7 @@ using UnityEngine.Analytics;
 public class GameManager : MonoBehaviour
 {
     // Panels
-    [SerializeField] private GameObject menuPanel;
+    //[SerializeField] private GameObject menuPanel;
     [SerializeField] private GameObject startPanel;
     [SerializeField] private GameObject waitingPlayerPanel;
     [SerializeField] private GameObject gameOverPanel;
@@ -51,6 +51,9 @@ public class GameManager : MonoBehaviour
     // Booster
     [SerializeField] private GameObject coinPrefab;
     [SerializeField] private GameObject[] boosterPrefab;
+    // Moving Obstacle
+    [SerializeField] private GameObject[] movingObs;
+    private int movingObsRandValue;
 
     // Scaling
     private float scaleFix;
@@ -108,6 +111,7 @@ public class GameManager : MonoBehaviour
         spawnObstacleYPosCount = 0;
         canSpawnObstacle = true;
         canSendObstacleGap = false;
+        movingObsRandValue = 35; // %
 
         // Set screen size
         Vector2 minPosCamera = Camera.main.ScreenToWorldPoint(new Vector2(0, 0));
@@ -444,42 +448,50 @@ public class GameManager : MonoBehaviour
             for (int i = 0; i < rowPos.Length; i++)
             {
                 // Instantiate new platform
-                GameObject temp;
 
                 if (platform[i] == 1)
                 {
                     // Spawn Candi
                     int randCandi = Random.Range(0, candiPrefab.Length);
-                    temp = Instantiate(candiPrefab[randCandi], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                    Instantiate(candiPrefab[randCandi], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
                 }
                 else if (platform[i] == 2)
                 {
                     // Spawn House
                     int randHouse = Random.Range(0, housePrefab.Length);
-                    temp = Instantiate(housePrefab[randHouse], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                    Instantiate(housePrefab[randHouse], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
                 }
                 else if (platform[i] == 3)
                 {
                     // Spawn Tree
                     int randTree = Random.Range(0, treePrefab.Length);
-                    temp = Instantiate(treePrefab[randTree], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                    Instantiate(treePrefab[randTree], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
                 }
                 else if (platform[i] == 4)
                 {
                     // Spawn Wall
                     int randWall = Random.Range(0, wallPrefab.Length);
-                    temp = Instantiate(wallPrefab[randWall], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                    Instantiate(wallPrefab[randWall], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
                 }
                 else if (platform[i] == 5)
                 {
                     // Spawn Water
                     int randWater = Random.Range(0, waterPrefab.Length);
-                    temp = Instantiate(waterPrefab[randWater], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                    Instantiate(waterPrefab[randWater], new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+
+                    // Randomize spawn moving obstacle
+                    // Spawn Moving Obstacle
+                    int randMvObs = Random.Range(1, 101);
+                    if (randMvObs < movingObsRandValue)
+                    {
+                        string[] msg = { "SpawnMovingObs", Random.Range(0, movingObs.Length).ToString(), rowPos[i].position.x.ToString(), (rowPos[i].position.y + 5).ToString() };
+                        network.SendMassageClient("All", msg);
+                    }
                 }
                 else if (platform[i] == 6)
                 {
                     // Spawn Lava
-                    temp = Instantiate(lavaPrefab, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
+                    Instantiate(lavaPrefab, new Vector3(rowPos[i].position.x, rowPos[i].position.y, 5), Quaternion.identity);
                 }
 
                 // Relocate row position
@@ -553,7 +565,7 @@ public class GameManager : MonoBehaviour
         }
         
     }
-    public void SpawnCoin(int xPos, int yPos)
+    public void SpawnCoin(float xPos, float yPos)
     {
         // Spawn
         GameObject temp = Instantiate(coinPrefab, new Vector3(xPos, yPos, 1), Quaternion.identity);
@@ -565,12 +577,20 @@ public class GameManager : MonoBehaviour
         Instantiate(PlatformGround, platformSpawnPos, Quaternion.identity);
         platformSpawnPos = new Vector3(platformSpawnPos.x, platformSpawnPos.y + 10, platformSpawnPos.z);
     }
-    public void SpawnBooster(int typeBoost, int xPos, int yPos)
+    public void SpawnBooster(int typeBoost, float xPos, float yPos)
     {
         // Spawn
         GameObject temp = Instantiate(boosterPrefab[typeBoost], new Vector3(xPos, yPos, 1), Quaternion.identity);
         // Re-scale
         temp.transform.localScale = new Vector3(scaleFix - .3f, scaleFix - .3f, scaleFix - .3f);
+    }
+    public void SpawnMovingObs(int typeObs, float xPos, float yPos)
+    {
+        // Spawn
+        GameObject temp = Instantiate(movingObs[typeObs], new Vector3(xPos, yPos, 1), Quaternion.identity);
+
+        // Debug
+        Debug.Log("Spawn " + movingObs[typeObs].name);
     }
 
     // Player Order ----------------------------------------------------------------------------------------------------

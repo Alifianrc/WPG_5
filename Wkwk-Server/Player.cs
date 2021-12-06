@@ -191,8 +191,12 @@ namespace Wkwk_Server
                                 string[] d = new string[] { "SpawnBooster", info[2], info[3], info[4] };
                                 SendMassage("Client", "All", d);
                                 break;
+                            case "SpawnMovingObs":
+                                string[] f = new string[] { "SpawnMovingObs", info[2], info[3], info[4] };
+                                SendMassage("Client", "All", f);
+                                break;
                             default:
-
+                                Console.WriteLine("Massage not " + info[0] + " correct : " + info[1]);
                                 break;
                         }
                     }
@@ -210,7 +214,7 @@ namespace Wkwk_Server
                                 SendMassage("Client", "AllES", b);
                                 break;
                             default:
-
+                                Console.WriteLine("Massage not " + info[0] + " correct : " + info[1]);
                                 break;
                         }
                     }
@@ -247,7 +251,7 @@ namespace Wkwk_Server
                                 playerName = info[2];
                                 break;
                             default:
-
+                                Console.WriteLine("Massage not " + info[0] + " correct : " + info[1]);
                                 break;
                         }
                     }

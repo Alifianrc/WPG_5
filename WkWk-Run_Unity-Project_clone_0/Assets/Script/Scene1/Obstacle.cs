@@ -10,6 +10,9 @@ public class Obstacle : MonoBehaviour
     private GameManager manager;
     private Client network;
 
+    private bool isStartRolling;
+    private float rollingSpeed = 1.5f;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -28,7 +31,18 @@ public class Obstacle : MonoBehaviour
             {
                 Destroy(gameObject);
             }
+
+            if (isStartRolling)
+            {
+                transform.position = new Vector2(transform.position.x, (transform.position.y - rollingSpeed * Time.deltaTime));
+            }
         }
+    }
+
+    // Method for moving obstacle
+    public void StartRolling()
+    {
+        isStartRolling = true;   
     }
 
     private void OnCollisionEnter2D(Collision2D collision)

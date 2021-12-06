@@ -2601,7 +2601,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 971a35cc82288dc4982ebce993a9b1c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  menuPanel: {fileID: 0}
   startPanel: {fileID: 801178862}
   waitingPlayerPanel: {fileID: 1885622331}
   gameOverPanel: {fileID: 346641904}
@@ -2634,6 +2633,9 @@ MonoBehaviour:
     type: 3}
   boosterPrefab:
   - {fileID: 8172974119655566455, guid: 56a2f7884589016488d8553db23f8955, type: 3}
+  movingObs:
+  - {fileID: 5202288772894536616, guid: 4d9670dfc04278c4bbdbdebc349f578a, type: 3}
+  - {fileID: 4740505980958782623, guid: 4f986a895f0c00e4cb2eb709024859ed, type: 3}
   rowPos:
   - {fileID: 451845253}
   - {fileID: 817574709}

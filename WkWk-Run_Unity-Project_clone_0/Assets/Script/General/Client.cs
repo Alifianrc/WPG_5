@@ -223,9 +223,26 @@ public class Client : MonoBehaviour
                 case "SpawnObstacle":
                     int[] platformData = new int[] { int.Parse(data[2]), int.Parse(data[3]), int.Parse(data[4]), int.Parse(data[5]), int.Parse(data[6]), };
                     FindObjectOfType<GameManager>().SpawnObstacle(platformData);
+                    try
+                    {
+                        for(int i = 0; i < 5; i++)
+                        {
+                            int ahfuwe = int.Parse(data[i + 2]);
+                        }
+                    }
+                    catch
+                    {
+                        for (int i = 0; i < 5; i++)
+                        {
+                            Debug.Log(data[i + 2] + " ");
+                        }
+                    }
                     break;
                 case "SpawnObstacleGap":
                     FindObjectOfType<GameManager>().SpawnObstacleGap(int.Parse(data[2]));
+                    break;
+                case "SpawnMovingObs":
+                    FindObjectOfType<GameManager>().SpawnMovingObs(int.Parse(data[2]), float.Parse(data[3]), float.Parse(data[4]));
                     break;
                 case "SyncPlr":
                     foreach(PlayerManager a in playerListInRoom)
@@ -246,10 +263,10 @@ public class Client : MonoBehaviour
                     ChangePlayerRow(data[2], int.Parse(data[3]));
                     break;
                 case "SpawnCoin":
-                    FindObjectOfType<GameManager>().SpawnCoin(int.Parse(data[2]), int.Parse(data[3]));
+                    FindObjectOfType<GameManager>().SpawnCoin(float.Parse(data[2]), float.Parse(data[3]));
                     break;
                 case "SpawnBooster":
-                    FindObjectOfType<GameManager>().SpawnBooster(int.Parse(data[2]), int.Parse(data[3]), int.Parse(data[4]));
+                    FindObjectOfType<GameManager>().SpawnBooster(int.Parse(data[2]), float.Parse(data[3]), float.Parse(data[4]));
                     break;
                 case "PlayerDead":
                     foreach (PlayerManager a in playerListInRoom)
