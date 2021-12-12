@@ -444,6 +444,10 @@ public class PlayerManager : MonoBehaviour
         {
             animator.SetTrigger("Burning");
         }
+        else if (obstacleName == "Log" || obstacleName == "Ball")
+        {
+            animator.SetTrigger("Dead");
+        }
 
         string[] a = { "PlayerDead", transform.position.x.ToString(), transform.position.y.ToString() };
         network.SendMassageClient("AllES", a);

@@ -81,6 +81,14 @@ public class Obstacle : MonoBehaviour
             {
                 collision.GetComponent<PlayerManager>().IsSwimming(false);
             }
+            else if(ObstacleName == "Ball" || ObstacleName == "Log" || ObstacleName == "Lava")
+            {
+                PlayerManager player = collision.gameObject.GetComponent<PlayerManager>();
+                if (player.playerName == network.MyName)
+                {
+                    player.Dead(ObstacleName);
+                }
+            }
         }
     }
 }
